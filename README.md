@@ -1,11 +1,11 @@
 # EMSel
 Code accompanying Fine and Steinrücken (2024). We provide the ability to analyze a time-series allele frequency dataset under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid), as well as the data and code to reproduce the figures from our paper.
 
-### Running EMSel
+## Running EMSel
 
 To run EMSel (via `run_emsel.py`), you must have either a CSV file or a VCF file.
 
-##### Using EMSel with CSVs
+### Using EMSel with CSVs
 
 The CSV should be formatted as the following:
 - each locus/replicate should be in its own row.
@@ -16,11 +16,11 @@ The CSV should be formatted as the following:
 
 An example of a properly-formatted CSV is available in the `simulations` folder.
 
-##### Using EMSEL with VCFs
+### Using EMSEL with VCFs
 
 Fortunately the formatting of VCFs is standardized. If the VCF can be read by `scikit-allele`, it can be used with EMSel. In addition, however, using EMSel with a VCF requires a file containing the same strings as the `samples` key in VCF and a corresponding sampling time (in years or generations, see the -ytg flag below) for each sample.
 
-##### Minimal example and output
+### Minimal example and output
 
 A minimal sample call to EMSel with a CSV:
 `python run_emsel.py input_data.csv output_EM.pkl.bz2`
@@ -39,7 +39,7 @@ Both of these will create the file `output_EM.pkl.bz2` containing the results of
   - `itercount_hist` - the number of iterations for convergence for each replicate.
   - `exit_codes` - exit codes indicating the termination statuts of each replicate. See section "Exit Codes".
  
-##### Command-line arguments
+### Command-line arguments
 
 In addition to the required `input` and `output` paths, EMSel has the following optional arguments:
 
@@ -51,12 +51,12 @@ Number of years per generation, used to convert a VCF or CSV to generations. If 
 
 `-ic, --init_cond <str, default='uniform'>
 Initial condition (pi_0 in HMM language) for initialization of the HMM. Options are: 
-- "uniform" - uniform, equiprobable prior (recommended/default)
-- "delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a delta function at p = x.
-- "beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the initial condition to a symmetric beta function beta(alpha, alpha).
-- "spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set the initial condition to a mixture of uniform with weight 1-x and a delta function at p = y with weight x.
-- "theta" - generates an initial condition where the probability in hidden state i is proportional to 1/i. Scales with the inputted value of -mu.
-- "theta-trunc" - use "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to one in which the probaiblity in hidden state i is proportional to 1/i, but states with allele frequency <= x have weight 0 (intended to prevent the weights from diverging near zero).`
+"uniform" - uniform, equiprobable prior (recommended/default)
+"delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a delta function at p = x.
+"beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the initial condition to a symmetric beta function beta(alpha, alpha).
+"spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set the initial condition to a mixture of uniform with weight 1-x and a delta function at p = y with weight x.
+"theta" - generates an initial condition where the probability in hidden state i is proportional to 1/i. Scales with the inputted value of -mu.
+"theta-trunc" - use "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to one in which the probaiblity in hidden state i is proportional to 1/i, but states with allele frequency <= x have weight 0 (intended to prevent the weights from diverging near zero).`
 
 `--ic_dict <1+ arguments of the form 'str int'>
 Additional arguments if -ic is not "uniform" or "theta".`
@@ -72,10 +72,10 @@ Whether to use Chebyshev nodes for spacing of hidden states (highly recommended)
 
 `--ic_update_type <str, default='beta'>
 Method of estimating the initial condition. Options are:
-- "beta" - estimate the parameters of a beta distribution. Output dictionary values involving the initial distribution will have shape (N,2)
-- "delta" - estimate the parameter of a delta distribution. Output dictionary values will have shape (N, 1)
-- "baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for all hidden states. Output dictionary values will have shape (N, Ns), where Ns = the number of hidden states.
-- any other string will cause the initial condition to not be estimated (i.e. pi_k = pi_0 for all iterations k). Output dictionary values will have shape (N, 1).`
+"beta" - estimate the parameters of a beta distribution. Output dictionary values involving the initial distribution will have shape (N,2)
+"delta" - estimate the parameter of a delta distribution. Output dictionary values will have shape (N, 1)
+"baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for all hidden states. Output dictionary values will have shape (N, Ns), where Ns = the number of hidden states.
+any other string will cause the initial condition to not be estimated (i.e. pi_k = pi_0 for all iterations k). Output dictionary values will have shape (N, 1).`
 
 `--update_types <1+ str, default='all'>
 Which modes of selection to analyze under. You can list as many of ["neutral", "add", "dom", "rec", "het", "full"] as you would like. Neutral is automatically run. The default, "all", is a shorthand for running all modes of selection.`

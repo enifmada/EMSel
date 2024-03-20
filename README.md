@@ -1,5 +1,5 @@
 # EMSel
-Code accompanying Fine and Steinrücken (2024). We provide the ability to analyze a time-series allele frequency dataset under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid), as well as the data and code to reproduce the figures from our paper.
+Code accompanying Fine and Steinrücken (2024). We provide the ability to simulate (`simulate_data.py`) and analyze (`run_emsel.py`) a time-series allele frequency dataset under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid), as well as the data and code to reproduce the figures from our paper.
 
 ## Running EMSel
 
@@ -145,4 +145,6 @@ If used and input is a VCF, saves a CSV of the same name containing the intermed
 Track the progress of EMSel with a tqdm progressbar.
 ```
 
+## Simulating data
 
+maybe make this tonight, idk

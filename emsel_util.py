@@ -27,30 +27,20 @@ def generate_wf_data(p: float, N: int, N_samples: int, s1: int, s2: int, num_gen
     true_data = freqs
     return samples, true_data
 
-def generate_multiple_wf_data(p, N, N_samples, s1, s2, num_gens, sample_locs, seed, small_s=False, normal_timestep=0):
-    if normal_timestep > 0:
-        num_gens = int(num_gens/normal_timestep)
-        timestep_recip = int(1/normal_timestep)
+def generate_multiple_wf_data(p, N, N_samples, s1, s2, num_gens, sample_locs, seed, small_s=False):
     rng = np.random.default_rng(seed=seed)
     freqs = np.zeros((p.shape[0], num_gens))
     freqs[:, 0] = p
     nt = np.zeros_like(sample_locs)+N_samples
     for i in np.arange(num_gens - 1):
-        freqs[:, i + 1] = forward_one_gen(freqs[:, i], N, s1, s2, rng, small_s, normal_timestep)
+        freqs[:, i + 1] = forward_one_gen(freqs[:, i], N, s1, s2, rng, small_s)
         if np.all(freqs[:, i+1] <= 0):
-            if normal_timestep > 0:
-                freqs = freqs[:, ::timestep_recip]
             all_obs_counts = rng.binomial(nt, freqs[:, sample_locs])
             return all_obs_counts, freqs
         elif np.all(freqs[:, i+1] >= 1):
             freqs[:, i+1:] = 1
-            if normal_timestep > 0:
-                freqs = freqs[:, ::timestep_recip]
             all_obs_counts = rng.binomial(nt, freqs[:, sample_locs])
             return all_obs_counts, freqs
-
-    if normal_timestep > 0:
-        freqs = freqs[:, ::timestep_recip]
     all_obs_counts = rng.binomial(nt, freqs[:, sample_locs])
     return all_obs_counts, freqs
 
@@ -86,21 +76,12 @@ def generate_theta_distrib(theta, states, bounds):
     distrib_state[0] = 1-np.sum(distrib_state[1:])
     return distrib_state
 
-def forward_one_gen(p_vector, pop_size, s1, s2, rng, small_s=False, normal_timestep=0):
+def forward_one_gen(p_vector, pop_size, s1, s2, rng, small_s=False):
     if small_s:
         p_prime_vector = p_vector + p_vector * (1 - p_vector) * ((1 - 2 * p_vector) * s1 + p_vector * s2)
     else:
         p_prime_vector = p_vector*(1+s1-s1*p_vector+s2*p_vector)/(1+2*s1*p_vector+s2*p_vector**2-2*s1*p_vector**2)
-
-
-    if normal_timestep > 0:
-        test_vec = rng.normal(p_vector+normal_timestep*(p_prime_vector-p_vector), np.sqrt(normal_timestep*p_vector*(1-p_vector)/pop_size))
-        while np.any(test_vec > 1) or np.any(test_vec < 0):
-            invalid_idxs = np.logical_or(test_vec > 1, test_vec < 0)
-            test_vec[invalid_idxs] = rng.normal(p_vector[invalid_idxs]+normal_timestep*(p_prime_vector[invalid_idxs]-p_vector[invalid_idxs]), np.sqrt(normal_timestep*p_vector[invalid_idxs]*(1-p_vector[invalid_idxs])/pop_size))
-        return test_vec
-    else:
-        return rng.binomial(pop_size, p_prime_vector) / pop_size
+    return rng.binomial(pop_size, p_prime_vector) / pop_size
 
 
 def generate_data(pd):
@@ -120,11 +101,11 @@ def generate_data(pd):
     full_true_data = np.zeros((1, pd["num_gens"]))
     samples_per_run = 10000
     if pd["init_cond"] == "theta":
-        states = np.linspace(0, 1, pd["Ne"])
+        states = np.linspace(0, 1, 2*pd["Ne"])
         bounds = generate_bounds(states)
         init_distrib = generate_truncated_theta_distrib(pd["theta"], pd["p_init"], states, bounds)
     if pd["init_cond"] == "recip":
-        weights = 1/np.arange(1, pd["Ne"])
+        weights = 1/np.arange(1, 2*pd["Ne"])
         weights /= np.sum(weights)
     trial_num = 0
     while full_samples.shape[0]-1 < pd["num_sims"]:
@@ -132,50 +113,44 @@ def generate_data(pd):
             p = np.random.default_rng(pd["seed"]+trial_num).choice(states, size=1, replace=True,
                                                                p=init_distrib)
         elif pd["init_cond"] == "beta":
-            p = np.random.default_rng(pd["seed"]+trial_num).beta(2*pd["Ne"]*pd["mu"], 2*pd["Ne"]*pd["mu"], samples_per_run)
+            p = np.random.default_rng(pd["seed"]+trial_num).beta(4*pd["Ne"]*pd["mu"], 4*pd["Ne"]*pd["mu"], samples_per_run)
         elif pd["init_cond"] == "fbeta":
-            p = np.random.default_rng(pd["seed"]+trial_num).beta(2*pd["Ne"]*pd["mu"], 2*pd["Ne"]*pd["mu"], samples_per_run)
+            p = np.random.default_rng(pd["seed"]+trial_num).beta(4*pd["Ne"]*pd["mu"], 4*pd["Ne"]*pd["mu"], samples_per_run)
             p[p>.5] = 1-p[p>.5]
         elif pd["init_cond"] == "delta":
             p = np.zeros(samples_per_run)+pd["p_init"]
         elif pd["init_cond"] == "real_special":
-            if "betas_matrix" in pd:
-                p = generate_real_ic(pd["betas_matrix"], pd["num_sims"], pd["seed"], True)
-            else:
-                p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["real_data_file"]["all_means"], size=pd["num_sims"], replace=True)
+            p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["real_data_file"]["all_means"], size=samples_per_run, replace=True)
         elif pd["init_cond"] == "recip":
-            p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, pd["Ne"])/pd["Ne"], size=samples_per_run, p=weights)
+            p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, 2*pd["Ne"])/(2*pd["Ne"]), size=samples_per_run, p=weights)
         else:
             print("weird IC")
             p = pd["p_init"]
 
         # print(trial_num)
-        temp_samples, temp_true_data = generate_multiple_wf_data(p, pd["Ne"], nt, pd["s1_true"], pd["s2_true"],
-                                                           pd["num_gens"], sample_locs, pd["seed"] + trial_num, small_s=pd["small_s"], normal_timestep=pd["normal_timestep"])
+        temp_samples, temp_true_data = generate_multiple_wf_data(p, 2*pd["Ne"], nt, pd["s1_true"], pd["s2_true"],
+                                                           pd["num_gens"], sample_locs, pd["seed"] + trial_num, small_s=pd["small_s"])
         if pd["survive_only"]:
             if "sampling_matrix" in pd:
-                #do missingness stuff here
                 if "real_data_file" in pd:
-                    print(f"pre-missingness adjustment: {np.mean(temp_samples)} avg samples")
+                    print(f"pre-missingness adjustment: {np.mean(temp_samples):.4f} avg samples")
                     outer_rng = np.random.default_rng(pd["seed"]+trial_num)
                     missingness_vals = outer_rng.choice(pd["real_data_file"]["all_missingness"], size=temp_samples.shape[0], replace=True)
                     hits_missing = outer_rng.binomial(temp_samples, 1 - missingness_vals[:, np.newaxis],size=temp_samples.shape)
                     misses_missing = outer_rng.binomial(nt - temp_samples,1 - missingness_vals[:, np.newaxis],size=temp_samples.shape)
                     assert np.all(hits_missing + misses_missing <= nt)
-                    print(f"post-missingness adjustment: {np.mean(hits_missing)} avg samples")
+                    print(f"post-missingness adjustment: {np.mean(hits_missing):.4f} avg samples")
 
                     temp_nts = hits_missing + misses_missing
                     temp_samples_ms = hits_missing
 
                     num_samples_mask = np.sum(temp_nts != 0, axis=1) > 1.
-                    # pres_samples_mask = num_samples[:, -1] > .05 * 122
-                    anc_samples_mask = np.sum(temp_nts, axis=1) > .10 * np.sum(pd["sampling_matrix"][:, 1])
-                    # samples_combo_mask = pres_samples_mask & anc_samples_mask
+                    anc_samples_mask = np.sum(temp_nts, axis=1) > pd["real_data_file"]["missing_thresh"] * np.sum(pd["sampling_matrix"][:, 1])
                     total_fd = np.sum(temp_samples_ms, axis=1)
                     total_ns = np.sum(temp_nts, axis=1)
 
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
-                    maf_mask = min_fd > total_ns * .05
+                    maf_mask = min_fd > total_ns * pd["real_data_file"]["maf_thresh"]
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
 
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
@@ -187,12 +162,8 @@ def generate_data(pd):
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
                     maf_mask = min_fd > total_ns * .05
                     all_mask = maf_mask
-
-
             elif pd["sel_type"] == "under":
                 samples_greater_than_zero_start = temp_samples[:, 0] > 0
-                print(np.sum(samples_greater_than_zero_start))
-                print(temp_samples[:, 0])
                 samples_less_than_one_start = temp_samples[:, 0] < nt[0]
                 all_mask = samples_greater_than_zero_start & samples_less_than_one_start
             elif pd["sel_type"] == "over":
@@ -211,7 +182,6 @@ def generate_data(pd):
             full_samples = np.vstack((full_samples, temp_samples))
             full_true_data = np.vstack((full_true_data, temp_true_data))
             p_inits = np.hstack((p_inits, p))
-        print(f"{full_samples.shape[0]} {trial_num*samples_per_run}")
         trial_num += 1
 
         if full_samples.shape[0] < 10 and trial_num * samples_per_run > 1000000:
@@ -444,10 +414,10 @@ def get_llg_array(one_data_dict, onep_types, full_classified_array):
     ll_array = np.zeros((one_data_dict["neutral_ll"].shape[0], len(onep_types) + 4))
     ll_array[:, 0] = one_data_dict["neutral_ll"]
     for i, onep_type in enumerate(onep_types):
-        ll_array[:, i+1] = one_data_dict[f"{onep_type}_run"]["ll_final_valid"]
-    ll_array[:, -3] = np.where(full_classified_array == 0, one_data_dict["full_run"]["ll_final_valid"], -np.inf)
-    ll_array[:, -2] = np.where(full_classified_array == 1, one_data_dict["full_run"]["ll_final_valid"], -np.inf)
-    ll_array[:, -1] = np.where(full_classified_array == 2, one_data_dict["full_run"]["ll_final_valid"], -np.inf)
+        ll_array[:, i+1] = one_data_dict[f"{onep_type}_run"]["ll_final_"]
+    ll_array[:, -3] = np.where(full_classified_array == 0, one_data_dict["full_run"]["ll_final"], -np.inf)
+    ll_array[:, -2] = np.where(full_classified_array == 1, one_data_dict["full_run"]["ll_final"], -np.inf)
+    ll_array[:, -1] = np.where(full_classified_array == 2, one_data_dict["full_run"]["ll_final"], -np.inf)
     return ll_array
 
 def get_llgka_array(llg_array, k, alpha):
@@ -503,12 +473,6 @@ def params_dict_to_str(**kwargs):
     if "hidden_states" in kwargs.keys():
         name_str += "hs" + str(kwargs["hidden_states"]) + "_"
     return name_str[:-1]
-
-def update_dict_pop_params(pd, new_size):
-    pd["Ne"] = 2*new_size
-    pd["theta"] = 4*new_size*pd["mu"]
-    pd["pop_size"] = new_size
-    return pd
 
 def generate_real_ic(inv_cdf, num_replicates, seed, betas=False):
     rng = np.random.default_rng(seed)
@@ -592,9 +556,9 @@ def convert_from_abbrevs(names_list, shorthet=False, shortall=False):
     short_names = ["add", "dom", "rec", "over", "under", "het", "full"]
     long_names = ["Additive", "Dominant", "Recessive", "Overdominant", "Underdominant", "Heterozygote difference", "Unconstrained"]
     if shorthet:
-        long_names[long_names.index("Heterozygote difference")] = "Het. dif."
+        long_names[long_names.index("Heterozygote difference")] = "Het. diff."
     if shortall:
-        long_names = ["Add.", "Dom.", "Rec.", "Over.", "Under.", "Het. dif.", "Uncons."]
+        long_names = ["Add.", "Dom.", "Rec.", "Over.", "Under.", "Het. diff.", "Uncons."]
     if isinstance(names_list, list):
         names_list_copy = deepcopy(names_list)
         for l_i, long_name in enumerate(long_names):

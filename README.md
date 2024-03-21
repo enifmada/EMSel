@@ -147,4 +147,88 @@ Track the progress of EMSel with a tqdm progressbar.
 
 ## Simulating data
 
-maybe make this tonight, idk
+`simulate_data.py` uses the discrete Wright-Fisher model to simulate allele frequencies under a given selection scenario (selection strength, mode of selection, initial condition, number of generations simulated, sampling scheme). 
+
+### Command-line arguments
+
+There is one required argument - a path to an output directory. In addition, there are the following positional arguments:
+
+```
+-n, --num_sims <int, default=100>
+Number of replicates simulated from each set of simulation parameters.
+```
+
+```
+-s, --sel_coeffs <float or sequence of floats, default=.005, .01, .025, .05>
+Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness of the derived homozygote), with s_1 = s_2 / 2. All other modes of selection are governed by a single parameter. Simulating under neutrality should be done by adding "neutral" to the --sel_types flag, not by including 0 in this flag.
+```
+
+```
+--sel_types <str or sequence of strs, default=neutral add dom rec over under>
+Modes of selection to simulate under. Must be a (non-strict) subset of {"neutral", "add", "dom", "rec", "over", "under"}.
+```
+
+```
+-g, --num_gens <int or sequence of ints, default=101 251 1001>
+Number of generations to simulate for. 
+```
+
+```
+-ic, --init_conds <float, str, or sequence of floats and strs, default=.005, .25, "recip">
+Initial conditions to simulate under. Floats are interpreted as initializing each simulation from the same fixed allele frequency. Currently, the only non-float option is "recip", which samples from a distribution where the probability of initial frequency p is proportional to 1/p. TODO: handle strings other than "recip" properly and describe their initial distributions.
+```
+
+```
+-ns, --num_samples <int, default=50>
+Number of haploid samples drawn at each sampling timepoint.
+```
+
+```
+-st, --sampling_times <int, default=11>
+Number of equally-spaced timepoints to sample at. Samples are taken at the first generation, the last generation and (sampling_times - 2) points equally spaced between.
+```
+
+```
+-Ne <int, default=10000>
+Effective population size for the simulations.
+```
+
+```
+--data_matched <2 strs>
+Provide the path to a sim_data file and a sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations, and sampling scheme as the inputted real data file. The sim_data file can be obtained by running EMSel, the sample_sizes.table file by running the AADR_to_VCF pipeline.
+```
+
+```
+--small_s
+Use of this flag indicates that the formula for updating allele frequencies in the Wright-Fisher model should use the small s approximation (p' = p + p(1-p)*((1-2p)s1 + p*s2)) rather than the full formula, p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2).
+```
+
+```
+--seed <int>
+Seed to simulate from. Simulations from identical seed values are identical.
+```
+
+```
+--save_plots
+If used, one plot per simulation condition plotting the true allele frequency for each replicate as well as the mean allele frequency will be produced.
+```
+
+```
+--suffix <str>
+Adds a suffix to each file to help distinguish different simulation runs.
+```
+
+When specifying multiple values for sel_coeffs, sel_types, num_gens, and init_conds, simulation is done for each combination on values (i.e. on itertools.product(sel_coeffs, sel_types, num_gens, init_conds), for a total of len(sel_coeffs)*len(sel_types)*len(num_gens)*len(init_conds) sets of files.
+
+### Output and examples
+
+`simulate_data.py` outputs three different file types:
+`args_{suffix}.pkl` - contains a dictionary of the parameters used to run all sets of simulations. For each simulation condition, the following two files are outputted:
+`{exp_name}_{suffix}data.csv` - contains the sampled allele frequencies and sampling times (see Using EMSel with CSVs for full formatting description).
+`{exp_name}_{suffix}pd.bz2` - a bz2-zipped pickle file containing the simulation parameters for this particular simulation condition.
+
+Sample calls to `simulate_data.py` for a non-data-matched set of simulations and a data-matched simulation are as follows:
+
+`python simulate_data.py simulations_folder -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
+
+`python simulate_data.py data_simulations -s .005 .05 .2 --sel_types neutral add rec --data_matched UK_aDNA_sim_data.pkl UK_aDNA_sample_sizes.table`

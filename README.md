@@ -223,9 +223,13 @@ When specifying multiple values for sel_coeffs, sel_types, num_gens, and init_co
 ### Output and examples
 
 `simulate_data.py` outputs three different file types:
-`args_{suffix}.pkl` - contains a dictionary of the parameters used to run all sets of simulations. For each simulation condition, the following two files are outputted:
-`{exp_name}_{suffix}data.csv` - contains the sampled allele frequencies and sampling times (see Using EMSel with CSVs for full formatting description).
-`{exp_name}_{suffix}pd.bz2` - a bz2-zipped pickle file containing the simulation parameters for this particular simulation condition.
+
+1. `args_{suffix}.pkl` - contains a dictionary of the parameters used to run all sets of simulations. 
+
+For each simulation condition, the following two files are outputted:
+
+2. `{exp_name}_{suffix}data.csv` - contains the sampled allele frequencies and sampling times (see Using EMSel with CSVs for full formatting description).
+3. `{exp_name}_{suffix}pd.bz2` - a bz2-zipped pickle file containing the simulation parameters for this particular simulation condition.
 
 Sample calls to `simulate_data.py` for a non-data-matched set of simulations and a data-matched simulation are as follows:
 

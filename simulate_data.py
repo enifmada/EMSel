@@ -19,13 +19,14 @@ parser.add_argument("-n", "--num_sims", type=int, default=100, help="number of r
 parser.add_argument("-s", "--sel_coeffs", nargs="+", type=float, default=[.005, .01, .025, .05], help="selection coefficients to simulate")
 parser.add_argument("--sel_types", nargs="+", type=str, default=["neutral", "add", "dom", "rec", "over", "under"], help="types of selection to simulate. valid types are 'neutral', 'add', 'dom', 'rec', 'over', 'under', for now.")
 parser.add_argument("-g", "--num_gens", nargs="+", type=int, default=[101, 251, 1001], help="number of generations to simulate")
-parser.add_argument("-ic", "--init_cond", nargs="+", type=float_or_str, default=[.005, .25, "recip"], help="initial conditions to simulate")
+parser.add_argument("-ic", "--init_conds", nargs="+", type=float_or_str, default=[.005, .25, "recip"], help="initial conditions to simulate")
 parser.add_argument("-ns", "--num_samples", type=int, default=50, help="number of samples to draw at each sampling timepoint")
 parser.add_argument("-st", "--sampling_times", type=int, default=11, help="number of times to draw samples")
 parser.add_argument("-Ne", type=int, default=10000, help="effective population size")
 parser.add_argument("--data_matched", type=str, nargs=2, default=["", ""], help="input the path to an initial frequency + missingness (sim_data) file and a sampling table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
 parser.add_argument("--seed", type=int, default=5, help="seed")
 parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
+parser.add_argument("--small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")
 parser.add_argument("--suffix", type=str, default="", help="file names suffix to differentiate")
 args = parser.parse_args()
 
@@ -39,6 +40,7 @@ for arg_sel_type in args.sel_types:
     args_dict["sel_types_list"].append(arg_sel_type)
 args_dict["ic_list"] = args.init_cond
 args_dict["seed"] = args.seed
+args_dict["small_s"] = args.small_s
 
 if args.suffix != "":
     args.suffix = args.suffix + "_"
@@ -87,7 +89,7 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
     pd["exp_name"] = exp_name
     pd["survive_only"] = True
     pd["sel_type"] = sel_type
-    pd["small_s"] = True
+    pd["small_s"] = args_dict["small_s"]
     if args.data_matched[0] == "":
         pd["init_cond"] = "recip" if init_dist == "recip" else "delta"
     else:

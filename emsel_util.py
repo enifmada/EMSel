@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
 from numba import njit
-from scipy.stats import chi2
+from scipy.stats import chi2, beta
 from copy import deepcopy
 
 #need nptyping and beartype :((
@@ -53,15 +53,6 @@ def generate_states_new(n_total, Ne, hidden_interp):
         return np.linspace(0,1,n_total), generate_bounds(np.linspace(0,1,n_total))
     raise TypeError("Invalid hidden interpolation function!")
 
-
-def generate_truncated_theta_distrib(theta,p_cutoff,states,bounds):
-    distrib_state = np.zeros_like(states)
-    theta_times_log = theta * np.log(bounds[1:])
-    distrib_state[1:] = np.diff(theta_times_log)
-    distrib_state[states < p_cutoff] = 0.
-    distrib_state /= np.sum(distrib_state)
-    return distrib_state
-
 def generate_bounds(states):
     bounds = np.zeros(states.shape[0]+1)
     bounds[1:-1] = states[:-1] + np.diff(states)/2
@@ -69,19 +60,12 @@ def generate_bounds(states):
     bounds[-1] = states[-1] + (states[-1]-states[-2])/2
     return bounds
 
-def generate_theta_distrib(theta, states, bounds):
-    distrib_state = np.zeros_like(states)
-    theta_times_log = theta*np.log(bounds[1:])
-    distrib_state[1:] = np.diff(theta_times_log)
-    distrib_state[0] = 1-np.sum(distrib_state[1:])
-    return distrib_state
-
 def forward_one_gen(p_vector, pop_size, s1, s2, rng, small_s=False):
     if small_s:
         p_prime_vector = p_vector + p_vector * (1 - p_vector) * ((1 - 2 * p_vector) * s1 + p_vector * s2)
     else:
         p_prime_vector = p_vector*(1+s1-s1*p_vector+s2*p_vector)/(1+2*s1*p_vector+s2*p_vector**2-2*s1*p_vector**2)
-    return rng.binomial(pop_size, p_prime_vector) / pop_size
+    return rng.binomial(2*pop_size, p_prime_vector) / 2*pop_size
 
 
 def generate_data(pd):
@@ -100,19 +84,12 @@ def generate_data(pd):
     full_samples = np.zeros((1, sample_times))
     full_true_data = np.zeros((1, pd["num_gens"]))
     samples_per_run = 10000
-    if pd["init_cond"] == "theta":
-        states = np.linspace(0, 1, 2*pd["Ne"])
-        bounds = generate_bounds(states)
-        init_distrib = generate_truncated_theta_distrib(pd["theta"], pd["p_init"], states, bounds)
     if pd["init_cond"] == "recip":
         weights = 1/np.arange(1, 2*pd["Ne"])
         weights /= np.sum(weights)
     trial_num = 0
     while full_samples.shape[0]-1 < pd["num_sims"]:
-        if pd["init_cond"] == "theta":
-            p = np.random.default_rng(pd["seed"]+trial_num).choice(states, size=1, replace=True,
-                                                               p=init_distrib)
-        elif pd["init_cond"] == "beta":
+        if pd["init_cond"] == "beta":
             p = np.random.default_rng(pd["seed"]+trial_num).beta(4*pd["Ne"]*pd["mu"], 4*pd["Ne"]*pd["mu"], samples_per_run)
         elif pd["init_cond"] == "fbeta":
             p = np.random.default_rng(pd["seed"]+trial_num).beta(4*pd["Ne"]*pd["mu"], 4*pd["Ne"]*pd["mu"], samples_per_run)
@@ -236,51 +213,68 @@ def plot_one_ll_grid(fig, axs, s1_grid, s2_grid, ll_grid, vmin, vmax, s1_label =
         vmin = np.amin(ll_grid)
         vmax = np.amax(ll_grid)
     gridplot_norm = axs.contourf(s1_grid, s2_grid, ll_grid.T,levels=25, cmap="viridis", vmin=vmin, vmax=vmax)
-    fig.colorbar(gridplot_norm, ax=axs, shrink=.50, label="log likelihood")
-    axs.axvline(c="k", ls="--", linewidth=1)
-    axs.axhline(c="k", ls="--", linewidth=1)
+    fig.colorbar(gridplot_norm, ax=axs, shrink=.3, label="Log likelihood")
+    axs.axvline(c="k", ls="--", linewidth=.7)
+    axs.axhline(c="k", ls="--", linewidth=.7)
     axs.set_xlim(s1_grid[0], s1_grid[-1])
     axs.set_ylim(s2_grid[0], s2_grid[-1])
     if plot_max:
         s1_max_idx_norm, s2_max_idx_norm = np.unravel_index(np.argmax(ll_grid, axis=None), ll_grid.shape)
-        axs.plot(s1_grid[s1_max_idx_norm], s2_grid[s2_max_idx_norm], "*",color="blue", ms=35, label="max", markeredgewidth=2, markeredgecolor="k")
+        axs.plot(s1_grid[s1_max_idx_norm], s2_grid[s2_max_idx_norm], "*",color="blue", ms=6, label="Max.", markeredgewidth=.5, markeredgecolor="k")
     if s1_label:
         axs.set_xlabel("$s_1$")
     if s2_label:
         axs.set_ylabel("$s_2$")
     axs.set_aspect("equal")
 
-def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right"):
+def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", thin=False):
     assert len(logps) == len(labels)
     len_ps = logps[0].shape[0]
-    max_y = -np.log10(len_ps)
+    xrange = np.arange(1, len_ps+1)
+    num_conf_pts = 500
+
+    max_y = -np.log10(1/len_ps)
     for i in range(len(logps)):
         assert logps[i].shape[0] == len_ps
 
     for i in range(len(logps)):
+        sorted_logps = np.sort(logps[i])[::-1]
         max_y = max(max_y, np.max(logps[i]))
-        if colors:
-            axins.plot(np.arange(1, len_ps + 1) / len_ps,
-                       np.power(10, -np.sort(logps[i])[::-1]), lw=2, label=labels[i], color=colors[i])
-            axs.plot(-np.log10(np.arange(1, len_ps + 1) / len_ps),
-                     np.sort(logps[i])[::-1], ".", lw=2, color=colors[i])
+        if thin:
+            rng = np.random.default_rng(i).uniform(size=len_ps)
+            idxs = np.where((rng > .9) | (sorted_logps > 1))[0]
         else:
-            axins.plot(np.arange(1, len_ps + 1) / len_ps,
-                       np.power(10, -np.sort(logps[i])[::-1]), lw=2, label=labels[i])
-            axs.plot(-np.log10(np.arange(1, len_ps + 1) / len_ps),
-                     np.sort(logps[i])[::-1], ".", lw=2)
+            idxs = np.arange(len_ps)
+        if colors:
+            axins.plot(xrange[idxs] / len_ps, np.power(10, -sorted_logps)[idxs], lw=2, label=labels[i], color=colors[i])
+            axs.plot(-np.log10(xrange[idxs] / len_ps), sorted_logps[idxs], ".", lw=2, color=colors[i])
+        else:
+            axins.plot(xrange[idxs] / len_ps, np.power(10, -sorted_logps)[idxs], lw=2, label=labels[i])
+            axs.plot(-np.log10(xrange[idxs] / len_ps), sorted_logps[idxs], ".", lw=2)
 
-    axins.plot([0, 1], [0, 1], color="k")
+    unlog_max_y = np.power(10, -max_y)
+    lin_xspace = np.linspace(unlog_max_y/2, len_ps+.9, num_conf_pts)
+    geom_xspace = np.geomspace(unlog_max_y/2, len_ps+.9, num_conf_pts)
+    lin_sigma = np.sqrt((lin_xspace*(len_ps-lin_xspace+1))/((len_ps+2)*(len_ps+1)**2))
+    geom_sigma = np.sqrt((geom_xspace*(len_ps-geom_xspace+1))/((len_ps+2)*(len_ps+1)**2))
+
+    axins.plot([0, 1], [0, 1], color="k", lw=1)
+    axins.fill_between(lin_xspace/len_ps, lin_xspace/len_ps-1.96*lin_sigma, lin_xspace/len_ps+1.96*lin_sigma, color="k", alpha=.2)
     axins.set_xlim([0, 1])
     axins.set_ylim([0, 1])
-    axs.plot([0, max_y * 1.05], [0, max_y * 1.05], color="k")
-    axs.set_ylim([0, max_y * 1.05])
-    axs.set_xlim([0, max_y * 1.05])
+    axs.plot([0, max_y * 1.05], [0, max_y * 1.05], color="k", lw=1)
+    upper_loglim = -np.log10(np.array([beta.ppf(.975, i, len_ps-i) for i in range(1,len_ps)]))
+    lower_loglim = -np.log10(np.array([beta.ppf(.025, i, len_ps-i) for i in range(1,len_ps)]))
+    conf_xspace = -np.log10((np.arange(1,len_ps)-.5)/len_ps)
+    #lower_loglim = -np.log10(np.clip(geom_xspace/len_ps+1.96*geom_sigma, np.power(10, -max_y*2), None))
+    axs.fill_between(conf_xspace, lower_loglim, upper_loglim, color="k", alpha=.08)
+
 
     axs.get_xaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
     axs.get_yaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
     axins.get_xaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
     axins.get_yaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
+    #axs.set_yticks(np.arange(max_y*1.05))
     axs.set_yticks(axs.get_yticks()[1:])
     axs.get_xticklabels()[0].set_horizontalalignment("right")
     axins.set_xticks([0, 0.5, 1])
@@ -292,6 +286,8 @@ def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right"):
     axs.legend(handles, labels, loc=legend_loc)
     axs.set_xlabel("$\mathbb{E}(-\log_{10}(p))$")
     axs.set_ylabel("$-\log_{10}(p)$")
+    axs.set_ylim([0, max_y * 1.05])
+    axs.set_xlim([0, max_y * 1.05])
 
 @njit
 def get_uq_a_exps(a, powers):
@@ -414,7 +410,7 @@ def get_llg_array(one_data_dict, onep_types, full_classified_array):
     ll_array = np.zeros((one_data_dict["neutral_ll"].shape[0], len(onep_types) + 4))
     ll_array[:, 0] = one_data_dict["neutral_ll"]
     for i, onep_type in enumerate(onep_types):
-        ll_array[:, i+1] = one_data_dict[f"{onep_type}_run"]["ll_final_"]
+        ll_array[:, i+1] = one_data_dict[f"{onep_type}_run"]["ll_final"]
     ll_array[:, -3] = np.where(full_classified_array == 0, one_data_dict["full_run"]["ll_final"], -np.inf)
     ll_array[:, -2] = np.where(full_classified_array == 1, one_data_dict["full_run"]["ll_final"], -np.inf)
     ll_array[:, -1] = np.where(full_classified_array == 2, one_data_dict["full_run"]["ll_final"], -np.inf)
@@ -554,7 +550,7 @@ def get_1d_s_data_from_type(s_data, sel_type):
 
 def convert_from_abbrevs(names_list, shorthet=False, shortall=False):
     short_names = ["add", "dom", "rec", "over", "under", "het", "full"]
-    long_names = ["Additive", "Dominant", "Recessive", "Overdominant", "Underdominant", "Heterozygote difference", "Unconstrained"]
+    long_names = ["Additive", "Dominant", "Recessive", "Overdominant", "Underdominant", "Heterozygote difference", "Multi-alternative"]
     if shorthet:
         long_names[long_names.index("Heterozygote difference")] = "Het. diff."
     if shortall:
@@ -573,7 +569,7 @@ def convert_from_abbrevs(names_list, shorthet=False, shortall=False):
 
 def convert_to_abbrevs(names_list):
     short_names = ["add", "dom", "rec", "over", "under", "het", "full"]
-    long_names = ["Additive", "Dominant", "Recessive", "Overdominant", "Underdominant", "Heterozygote difference", "Unconstrained"]
+    long_names = ["Additive", "Dominant", "Recessive", "Overdominant", "Underdominant", "Heterozygote difference", "Multi-alternative"]
     if isinstance(names_list, list):
         names_list_copy = deepcopy(names_list)
         for s_i, short_name in enumerate(short_names):

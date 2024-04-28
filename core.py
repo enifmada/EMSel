@@ -1,17 +1,16 @@
 import numpy as np
 from scipy.stats import norm, binom, beta
 from scipy.optimize import fsolve
-from emsel_util import generate_truncated_theta_distrib, get_uq_a_exps, generate_theta_distrib, generate_states_new
+from emsel_util import get_uq_a_exps, generate_states_new
 from sympy import symbols, sympify, lambdify, diff
 from numba import njit
 from scipy.optimize import minimize as spoptmin
 from tqdm import tqdm
 
 class HMM:
-    def __init__(self, num_approx, Ne, mu, s_init=[0., 0.], s_bound=1, init_cond="theta", hidden_interp = "chebyshev", **kwargs):
+    def __init__(self, num_approx, Ne, s_init=[0., 0.], s_bound=1, init_cond="theta", hidden_interp = "chebyshev", **kwargs):
         assert len(s_init)==2
         assert num_approx >= 0
-        self.theta = 2*Ne*mu
         self.ZERO_ALLELE_TOLERANCE = 0
         self.init_cond = init_cond
         self.custom_init_cond = False
@@ -35,28 +34,16 @@ class HMM:
         self.a = self.calc_transition_probs_old([self.s1, self.s2])
         assert np.all(np.isclose(np.sum(self.a, axis=1), 1))
         self.a_init = self.a.copy()
-
-        if self.init_cond == "theta":
-            self.init_state = generate_theta_distrib(self.theta, self.gs, self.bounds)
-        elif self.init_cond == "theta-trunc":
-            self.init_state = generate_truncated_theta_distrib(self.theta, kwargs["p"], self.gs, self.bounds)
-        elif self.init_cond == "uniform":
+        if self.init_cond == "uniform":
             if hidden_interp == "chebyshev":
                 pre_istate = np.diff(self.bounds)
                 self.init_state = pre_istate/np.sum(pre_istate)
             else:
                 self.init_state = np.zeros_like(self.gs) + 1/self.N
-
         elif self.init_cond == "delta":
             self.init_state = np.zeros_like(self.gs)
             self.init_state[np.clip(np.argmin(np.abs(self.gs-kwargs["p"])), 1, self.N-2)] = 1.
         elif self.init_cond == "beta":
-            g_difs = np.abs(np.subtract.outer(kwargs["init_cond_sampled"], self.gs[1:-1]))
-            init_counts = np.argmin(g_difs, axis=1)
-            self.init_state = np.zeros_like(self.gs)
-            self.init_state[1:] = [np.sum(init_counts == i) for i in np.arange(self.init_state.shape[0]-1)]
-            self.init_state /= np.sum(self.init_state)
-        elif self.init_cond == "beta_special":
             self.init_state = np.zeros_like(self.gs)
             beta_param = kwargs["beta_coef"]
             beta_distrib = beta(beta_param, beta_param)
@@ -67,13 +54,6 @@ class HMM:
             self.init_state /= np.sum(self.init_state)
             self.init_state *= 1-kwargs["spike_frac"]
             self.init_state[np.clip(np.argmin(np.abs(self.gs - kwargs["spike_loc"])), 1, self.N - 2)] += kwargs["spike_frac"]
-        elif isinstance(self.init_cond, np.ndarray):
-            assert self.init_cond.shape[-1] == self.gs.shape[0]
-            if self.init_cond.ndim == 1:
-                self.init_state = self.init_cond
-            else:
-                self.custom_init_cond = True
-                self.init_state = self.init_cond[0, :]
         else:
             raise TypeError("Invalid initial condition specification!")
 
@@ -105,9 +85,6 @@ class HMM:
         if update_type == "neutral":
             return self.update_s_neutral, []
 
-        if update_type == "fixed":
-            return self.update_s_fixed, []
-
         if update_type == "arc":
             self.multiplier_est = 0
             self.sym_s1, self.sym_s2, self.sym_lm = symbols("s1 s2 lm")
@@ -137,25 +114,22 @@ class HMM:
         if init_update_type == "baumwelch":
             return self.update_init_baumwelch, self.baumwelch_to_state_func, self.N
 
-        return self.update_init_null, self.null_to_state_func, 1
+        if init_update_type == "fixed":
+            self.init_update_type = None
+            return self.update_init_null, self.null_to_state_func, 1
+
+        raise ValueError(f"Invalid init update type specified: {init_update_type}")
 
     def calc_transition_probs_old(self, s_vector):
         s1 = s_vector[0]
         s2 = s_vector[1]
         p_primes = np.clip(self.gs + self.gs * self.qs * (s2 * self.gs + s1 * (1 - 2 * self.gs)), 0, 1)
-        sigmas = np.sqrt(self.gs * self.qs / self.Ne)
+        sigmas = np.sqrt(self.gs * self.qs / 2*self.Ne)
         a_one = np.zeros((1, self.gs.shape[0]))
         a_one[:, 0] = 1.
         a_all = np.concatenate((a_one, np.diff(norm.cdf(np.expand_dims(self.integral_bounds, axis=-1),
                                             p_primes[1:-1], sigmas[1:-1]), axis=0).T, a_one[:, ::-1]), axis=0)
         return a_all
-
-    def calc_init_state(self):
-        init_state = np.zeros_like(self.gs)
-        theta_times_log = self.theta*np.log(self.bounds[1:])
-        init_state[1:] = np.diff(theta_times_log)
-        init_state[0] = 1-np.sum(init_state[1:])
-        return init_state
 
     def clip_and_renormalize(self, matrix, val):
         if self.hidden_interp == "chebyshev":
@@ -262,9 +236,6 @@ class HMM:
 
     def update_s_neutral(self):
         return 0., 0.
-
-    def update_s_fixed(self):
-        return self.s1, self.s2
 
     def update_s_rec(self):
         denom = np.sum(np.dot(self.gammas[:, :-1].T, (self.gs**3*self.qs)))
@@ -463,7 +434,6 @@ class HMM:
 
                 self.init_state, self.init_params = self.init_update_func(self.gammas[:, 0], min_init_val)
                 if self.init_update_type is not None:
-
                     itercount += 1
                     invalid_s_flag = True
                     continue

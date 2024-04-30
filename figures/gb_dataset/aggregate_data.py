@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 import pickle
 from scipy.stats import chi2
-from emsel_util import bh_correct
+from emsel_util import bh_correct, get_1d_s_data_from_type
 
 chroms = range(1,23)
 classification_types = ["add", "dom", "het", "rec"]
@@ -71,7 +71,7 @@ for chrom in chroms:
         p_vals = -chi2(1).logsf(llr)/np.log(10)
         agg_data[f"{classification_type}_p_vals"] = p_vals
         agg_data[f"{classification_type}_itercount"] = hf[f"{classification_type}_run"]["itercount_hist"]
-        agg_data[f"{classification_type}_s_vals"] = hf[f"{classification_type}_run"]["s_final"]
+        agg_data[f"{classification_type}_s_vals"] = get_1d_s_data_from_type(hf[f"{classification_type}_run"]["s_final"], classification_type)
         if not np.all(np.isfinite(p_vals)):
             print(f"c {chrom} {classification_type} illegal stuff happening")
     for c_type in classification_types:
@@ -164,5 +164,5 @@ with open(complete_agg_data_path, "wb") as file:
 superfinal_binned_data = superfinal_binned_data[1:, :]
 np.savetxt(binned_path, superfinal_binned_data, delimiter="\t", fmt="%d")
 
-np.savetxt(means_path, np.concatenate((MAF_THRESH, cdata["all_means"])), delimiter="\n", fmt="%.4f")
-np.savetxt(missingness_path, np.concatenate((MISSING_THRESH, cdata["all_missingness"])), delimiter="\n", fmt="%.4f")
+np.savetxt(means_path, np.concatenate(([MAF_THRESH], cdata["all_means"])), delimiter="\n", fmt="%.4f")
+np.savetxt(missingness_path, np.concatenate(([MISSING_THRESH], cdata["all_missingness"])), delimiter="\n", fmt="%.4f")

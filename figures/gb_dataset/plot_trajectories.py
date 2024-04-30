@@ -14,7 +14,7 @@ plt.rcParams.update({'font.size': 9,
 
 c_types = ["add", "dom", "het", "rec", "full"]
 
-#manually input the locations of Mathieson and McVean's regions and figure 13C, rest are automatic
+#manually input the locations of Mathieson and McVean's regions and figure ??, rest are automatic
 lead_snp_idxs = np.array([355758, 490617, 597996])
 region_size = 20
 YEARS_PER_GEN = 28.1

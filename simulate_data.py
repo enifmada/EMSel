@@ -23,7 +23,7 @@ parser.add_argument("-ic", "--init_conds", nargs="+", type=float_or_str, default
 parser.add_argument("-ns", "--num_samples", type=int, default=50, help="number of samples to draw at each sampling timepoint")
 parser.add_argument("-st", "--sampling_times", type=int, default=11, help="number of times to draw samples")
 parser.add_argument("-Ne", type=int, default=10000, help="effective population size")
-parser.add_argument("--data_matched", type=str, nargs=2, default=["", ""], help="input the path to an initial frequency + missingness (sim_data) file and a sampling table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
+parser.add_argument("--data_matched", type=str, nargs=3, default=["", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
 parser.add_argument("--seed", type=int, default=5, help="seed")
 parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
 parser.add_argument("--small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")
@@ -38,7 +38,7 @@ for arg_sel_type in args.sel_types:
     if arg_sel_type not in ["neutral", "add", "dom", "rec", "over", "under"]:
         raise TypeError(f"invalid selection type: {arg_sel_type}")
     args_dict["sel_types_list"].append(arg_sel_type)
-args_dict["ic_list"] = args.init_cond
+args_dict["ic_list"] = args.init_conds
 args_dict["seed"] = args.seed
 args_dict["small_s"] = args.small_s
 
@@ -53,18 +53,23 @@ pd = {
 }
 
 if args.data_matched[0] != "":
-    sampling_matrix = np.loadtxt(Path(f"{args.data_matched[1]}"), skiprows=1, dtype=int)
-    with open(Path(f"{args.data_matched[0]}"), "rb") as file:
-        real_data_file = pickle.load(file)
+    sampling_matrix = np.loadtxt(Path(f"{args.data_matched[2]}"), skiprows=1, dtype=int)
+    means_file = np.loadtxt(args.data_matched[0], delimiter="\n")
+    if means_file[0] != .05:
+        print("WARNING: first value of means file is not 0.05 - may not be a MAF filter")
+    missingness_file = np.loadtxt(args.data_matched[1], delimiter="\n")
+    if missingness_file[0] != .1:
+        print("WARING: first value of missingness file is not 0.1 - may not be a missingness filter")
     sampling_matrix[:, 0] = sampling_matrix[-1, 0] - sampling_matrix[:, 0]
     sampling_matrix = np.flip(sampling_matrix, axis=0)
     args_dict["g_list"] = [sampling_matrix[-1, 0] + 1]
     args_dict["ic_list"] = ["real_special"]
-    args_dict["ic_path"] = args.data_matched[0]
-    args_dict["table_path"] = args.data_matched[1]
+    args_dict["means_path"] = args.data_matched[0]
+    args_dict["missingness_path"] = args.data_matched[1]
+    args_dict["table_path"] = args.data_matched[2]
 
 temp_seed = args_dict["seed"]
-args_save_path = Path(f"{args.output_directory}/args{args.suffix}.pkl")
+args_save_path = Path(f"{args.output_directory}/args_{args.suffix}.pkl")
 for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_dict["sel_types_list"], args_dict["ic_list"], args_dict["g_list"]):
     temp_seed += 1
     if sel_type == "under" and init_dist == .005:
@@ -96,7 +101,8 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
         pd["init_cond"] = "real_special"
 
     if args.data_matched[0] != "":
-        pd["real_data_file"] = real_data_file
+        pd["means_array"] = means_file
+        pd["missingness_array"] = missingness_file
         pd["sampling_matrix"] = sampling_matrix
 
     if sel_type == "neutral" and params_filename.is_file():
@@ -114,7 +120,7 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
     pd["true_data"] = data_dict["true_data"]
     pd["p_inits"] = data_dict["p_inits"]
     if args.save_plots:
-        fig, axs = plt.subplots(1,1,figsize=(20,20))
+        fig, axs = plt.subplots(1,1,figsize=(20,20),layout="constrained")
         axs.plot(data_dict["true_data"].T)
         axs.plot(np.mean(data_dict["true_data"], axis=0), color="k", lw=2)
         fig.savefig(Path(f"{args.output_directory}/{exp_name}_{args.suffix}_plot.png"), bbox_inches="tight")

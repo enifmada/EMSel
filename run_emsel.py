@@ -1,14 +1,12 @@
-import bz2
 import numpy as np
 from core import HMM
-from scipy.stats import norm
 import pickle
 from pathlib import Path
 from tqdm import tqdm
 import argparse
 import allel
 from pandas import read_csv
-from emsel_util import vcf_to_useful_format
+from emsel_util import vcf_to_useful_format, save_csv_output
 from joblib import Parallel, delayed
 
 def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, min_init_val=1e-8, min_ic = 5):
@@ -23,25 +21,30 @@ def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, min_in
 parser = argparse.ArgumentParser()
 parser.add_argument("input_path", type=argparse.FileType("rb"), help="path to input dataset")
 parser.add_argument("output_path", type=argparse.FileType("wb"), help="path to output file")
+group = parser.add_mutually_exclusive_group()
+group.add_argument("time_before_present", action="store_true", help="dates provided start at a number at the earliest time and count down towards the present")
+group.add_argument("time_after_zero", action="store_true", help="dates provided start at zero at the earliest time and count up towards the present")
 parser.add_argument("-ytg", "--years_to_gen", type=float, default=1, help="years per generation in VCF or CSV")
+parser.add_argument("-maf", "--min_allele_freq", type=float, default=0.05, help="filters out replicates with mean minor allele frequency < MAF")
+parser.add_argument("--min_sample_density", type=float, default=0.1, help="filters out replicates with fewer than (min_sample_density * max_samples) total samples")
 parser.add_argument("-nc", "--num_cores", type=int, default=1, help="number of CPU cores to parallelize over")
 parser.add_argument("-ns", "--num_states", type=int, help="number of approx states in HMM", default=500)
 parser.add_argument("--s_init", type=float, nargs=2, default=[0., 0.], help="vector of initial s value")
-parser.add_argument("-ic", "--init_cond", default="uniform", help="initial condition to use")
+parser.add_argument("-sid", "--starting_init_dist", default="uniform", help="initial initial condition to use")
 parser.add_argument("-t", "--tol", type=float, default=1e-3, help="ll_i - ll_(i-1) < tol stops the run")
 parser.add_argument("-m", "--maxiter", type=int, default=2000, help="maximum number of iterations")
-parser.add_argument("-Ne", type=int, default=20000, help="effective population size for the HMM")
-parser.add_argument("-mu", type=float, default=1.25e-8, help="mutation rate")
-parser.add_argument("--hidden_interp", default="linear", help="interpolation of the hidden states (linear vs. Chebyshev nodes for now)")
+parser.add_argument("-Ne", type=int, default=10000, help="effective population size for the HMM")
+parser.add_argument("--hidden_interp", default="chebyshev", help="interpolation of the hidden states (linear vs. Chebyshev nodes for now)")
 parser.add_argument("--ic_update_type", default="beta", help="type of init cond estimation")
 parser.add_argument("--progressbar", action="store_true", help="adds a tqdm progress bar")
-parser.add_argument("--ic_dict", nargs='*', help="initial condition dictionary")
-parser.add_argument("--update_types", default="all", nargs='*', help="strings of update types to run")
+parser.add_argument("--sid_dict", nargs='*', help="initial condition dictionary")
+parser.add_argument("--selection_modes", default="all", nargs='*', help="strings of update types to run")
 parser.add_argument("--min_itercount", type=int, default=5, help="minimum number of EM iterations before terminating")
 parser.add_argument("--min_init_val", type=float, default=1e-8, help="minimum value of an init state probability")
 parser.add_argument("--save_csv", action="store_true", help="if inputting a VCF, save a CSV to future reduce pre-processing time")
-parser.add_argument("--sample_file", type=argparse.FileType("rb"), help="sample times file (if input = VCF)")
-parser.add_argument("--sample_cols", type=str, nargs=2, default=["Genetic_ID","Date_mean"], help="names of the ID and dates columns in the sample times file (if input = VCF)")
+parser.add_argument("--info_file", type=argparse.FileType("rb"), help="sample times file (if input = VCF)")
+parser.add_argument("--info_cols", type=str, nargs=2, default=["Genetic_ID","Date_mean"], help="names of the ID and dates columns in the sample times file (if input = VCF)")
+parser.add_argument("--full_output", action="store_true", help="save a pickle file with a full set of outputs (in addition to the CSV)")
 
 args = parser.parse_args()
 
@@ -49,18 +52,19 @@ args = parser.parse_args()
 hmm_dd = {}
 hmm_dd["approx_states"] = args.num_states
 hmm_dd["s_init"] = args.s_init
-hmm_dd["init_cond"] = args.init_cond
+hmm_dd["init_cond"] = args.starting_init_dist
 hmm_dd["tol"] = args.tol
 hmm_dd["ytg"] = args.years_to_gen
 hmm_dd["max_iter"] = args.maxiter
 hmm_dd["Ne"] = args.Ne
-hmm_dd["mu"] = args.mu
 hmm_dd["hidden_interp"] = args.hidden_interp
 hmm_dd["ic_update_type"] = args.ic_update_type
-hmm_dd["update_types"] = args.update_types
+hmm_dd["selection_modes"] = args.selection_modes
 hmm_dd["ic_dict"] = {}
 hmm_dd["min_ic"] = args.min_itercount
 hmm_dd["min_init_val"] = args.min_init_val
+hmm_dd["maf_thresh"] = args.maf
+hmm_dd["min_sample_density"] = args.min_sample_density
 
 if args.ic_dict is not None:
     for ic_pair in args.ic_dict:
@@ -69,6 +73,8 @@ if args.ic_dict is not None:
             hmm_dd["ic_dict"][k] = float(v)
         except:
             hmm_dd["ic_dict"][k] = v
+
+
 
 hmm_path = Path(args.output_path.name)
 pd_path = Path(args.input_path.name)
@@ -86,46 +92,70 @@ if pd_path.suffix == ".csv":
     hmm_data["final_data"] = pf[:, 2::3].astype(int)
     hmm_data["num_samples"] = pf[:, 1::3].astype(int)
     hmm_data["sample_times"] = (pf[:, ::3] / hmm_dd["ytg"]).astype(int)
+    if args.time_before_present:
+        hmm_data["sample_times"] = np.max(hmm_data["sample_times"], axis=1)-hmm_data["sample_times"]
+    max_samples = np.max(np.sum(hmm_data["num_samples"], axis=1))
 elif pd_path.suffix == ".vcf":
-    if pd_path.with_suffix(".csv").is_file():
-        print("CSV already generated!")
-        pf = np.loadtxt(pd_path.with_suffix(".csv"), delimiter="\t")
-        hmm_data["final_data"] = pf[:, 2::3].astype(int)
-        hmm_data["num_samples"] = pf[:, 1::3].astype(int)
+    print("processing VCF...")
+    if not (args.info_file and args.info_cols):
+        raise ValueError("No sample file (or columns therein) specified!")
+    vcf_file = allel.read_vcf(str(pd_path))
+    max_samples = vcf_file["calldata/GT"].shape[1] + np.any(vcf_file['calldata/GT'][:, :, 1] >= 0, axis=0).sum()
+    vcf_dates = read_csv(args.info_file.name, usecols=args.info_cols, sep="\t").to_numpy()
+    if args.time_after_zero:
+        vcf_dates[:, 1] = np.max(vcf_dates[:, 1]) - vcf_dates[:, 1]
+    full_array = vcf_to_useful_format(vcf_file, vcf_dates, years_per_gen = hmm_dd["ytg"])
+    hmm_data["final_data"] = full_array[:, 2::3].astype(int)
+    hmm_data["num_samples"] = full_array[:, 1::3].astype(int)
+    hmm_data["sample_times"] = full_array[:, ::3].astype(int)
+    print("done processing VCF")
 
-        #don't divide by YTG here because the VCF -> CSV process already does this
-        hmm_data["sample_times"] = pf[:, ::3].astype(int)
-    else:
-        print("processing VCF...")
-        if not (args.sample_file and args.sample_cols):
-            raise ValueError("No sample file (or columns therein) specified!")
-        vcf_file = allel.read_vcf(str(pd_path))
-        vcf_dates = read_csv(args.sample_file.name, usecols=args.sample_cols, sep="\t").to_numpy()
-        full_array = vcf_to_useful_format(vcf_file, vcf_dates, years_per_gen = hmm_dd["ytg"])
-        hmm_data["final_data"] = full_array[:, 2::3]
-        hmm_data["num_samples"] = full_array[:, 1::3]
-        hmm_data["sample_times"] = full_array[:, ::3]
-        if args.save_csv:
-            np.savetxt(pd_path.with_suffix(".csv"), full_array, delimiter="\t", fmt="%d")
-        print("done processing VCF")
+total_fd = np.sum(hmm_data["final_data"], axis=1)
+total_ns = np.sum(hmm_data["num_samples"], axis=1)
 
-hmm_data["final_data"] = hmm_data["final_data"][:50, :]
-hmm_data["num_samples"] = hmm_data["num_samples"][:50, :]
-hmm_data["sample_times"] = hmm_data["sample_times"][:50, :]
+min_fd = np.minimum(total_fd, total_ns - total_fd)
+MAF_filter_mask = min_fd > total_ns * hmm_dd["maf_thresh"]
+
+num_samples_mask = np.sum(hmm_data["num_samples"] != 0, axis=1) > 1
+anc_samples_mask = np.sum(hmm_data["num_samples"], axis=1) > hmm_dd["min_sample_density"] * max_samples
+combo_mask = num_samples_mask & MAF_filter_mask & anc_samples_mask
+
+print(f":\nMAF filtered {hmm_data['final_data'].shape[0] - MAF_filter_mask.sum()}\n"
+      f"< 2 samples {hmm_data['final_data'].shape[0] - num_samples_mask.sum()}\n"
+      f"few samples filtered {hmm_data['final_data'].shape[0] - anc_samples_mask.sum()}\n"
+      f"overall filtered {hmm_data['final_data'].shape[0] - combo_mask.sum()}")
+
+hmm_data["final_data"] = hmm_data["final_data"][combo_mask, :]
+hmm_data["num_samples"] = hmm_data["num_samples"][combo_mask, :]
+hmm_data["sample_times"] = hmm_data["sample_times"][combo_mask, :]
+hmm_dd["max_samples"] = max_samples
+
+if pd_path.suffix == ".vcf" and args.save_csv:
+    np.savetxt(pd_path.with_suffix(".csv"), full_array[combo_mask, :], delimiter="\t", fmt="%d")
+
+if pd_path.suffix == ".vcf" and args.full_output:
+    hmm_dd["pos"] = vcf_file["variants/POS"][combo_mask]
+    hmm_dd["snp_ids"] = vcf_file["variants/ID"][combo_mask]
+    hmm_dd["ref_allele"] = vcf_file["variants/REF"][combo_mask]
+    hmm_dd["alt_allele"] = vcf_file["variants/ALT"][combo_mask, 0]
+
 
 all_update_types = ["neutral", "add", "dom", "rec", "het", "full"]
-if hmm_dd["update_types"] == "all" or hmm_dd["update_types"] == ["all"]:
+if hmm_dd["selection_modes"] == "all" or hmm_dd["selection_modes"] == ["all"]:
     update_types = all_update_types
+    hmm_dd["selection_modes"] = all_update_types
 else:
-    if len([update_i for update_i in hmm_dd["update_types"] if update_i not in [*all_update_types, "fixed"]]) > 0:
+    if len([update_i for update_i in hmm_dd["selection_modes"] if update_i not in all_update_types]) > 0:
         raise ValueError("Invalid update type specified!")
-    update_types = hmm_dd["update_types"]
+    if "neutral" not in hmm_dd["selection_modes"]:
+        hmm_dd["selection_modes"] = ["neutral", *hmm_dd["selection_modes"]]
+    update_types = hmm_dd["selection_modes"]
 for update_i, update_type in enumerate(update_types):
     print(f"{update_type}!")
     if num_cores > 1:
         parallel_loop = tqdm(range(hmm_data["final_data"].shape[0])) if args.progressbar else range(hmm_data["final_data"].shape[0])
         with Parallel(n_jobs=num_cores) as parallel:
-            iter_hmm = HMM(hmm_dd["approx_states"], hmm_dd["Ne"], hmm_dd["mu"],hmm_dd["s_init"],
+            iter_hmm = HMM(hmm_dd["approx_states"], hmm_dd["Ne"],hmm_dd["s_init"],
                         init_cond = hmm_dd["init_cond"], hidden_interp = hmm_dd["hidden_interp"], **hmm_dd["ic_dict"])
             iter_hmm.update_type = update_type
             iter_hmm.update_func, iter_hmm.update_func_args = iter_hmm.get_update_func(update_type, {})
@@ -140,7 +170,7 @@ for update_i, update_type in enumerate(update_types):
             "exit_codes": np.array([rp[5] for rp in res]),
         }
     else:
-        iter_hmm = HMM(hmm_dd["approx_states"], hmm_dd["Ne"], hmm_dd["mu"], np.array(hmm_dd["s_init"]),init_cond=hmm_dd["init_cond"], hidden_interp=hmm_dd["hidden_interp"], **hmm_dd["ic_dict"])
+        iter_hmm = HMM(hmm_dd["approx_states"], hmm_dd["Ne"], np.array(hmm_dd["s_init"]),init_cond=hmm_dd["init_cond"], hidden_interp=hmm_dd["hidden_interp"], **hmm_dd["ic_dict"])
         iter_hmm.update_type = update_type
         iter_hmm.update_func, iter_hmm.update_func_args = iter_hmm.get_update_func(update_type, {})
         s_hist, s_final, ll_hist, ic_dist, itercount_hist, exit_codes = iter_hmm.compute_s(hmm_data["final_data"], hmm_data["num_samples"], hmm_data["sample_times"],
@@ -153,9 +183,6 @@ for update_i, update_type in enumerate(update_types):
             "exit_codes": exit_codes
         }
     hmm_dict["ll_final"] = np.array([hmm_dict["ll_hist"][hmm_dict["itercount_hist"][i], i] for i in range(hmm_dict["itercount_hist"].shape[0])])
-    hmm_dict["ll_final_valid"] = np.where(hmm_dict["ll_final"] != hmm_dict["ll_hist"][0, :],
-                                              hmm_dict["ll_final"], -np.inf)
-
     if update_type == "neutral":
         hmm_dd["neutral_ll"] = np.array([hmm_dict["ll_hist"][hmm_dict["itercount_hist"][i], i] for i in range(hmm_dict["itercount_hist"].shape[0])])
         hmm_dd["neutral_ic"] = hmm_dict["ic_dist"]
@@ -163,6 +190,9 @@ for update_i, update_type in enumerate(update_types):
     else:
         hmm_dd[f"{update_type}_run"] = hmm_dict
     del hmm_dict["ll_hist"]
-    print(hmm_dict["ll_final"])
-with bz2.BZ2File(hmm_path, "wb") as file:
-    pickle.dump(hmm_dd, file)
+
+print("saving output...")
+save_csv_output(hmm_dd, hmm_path)
+if args.full_output:
+    with open(hmm_path.with_suffix(".pkl"), "wb") as file:
+        pickle.dump(hmm_dd, file)

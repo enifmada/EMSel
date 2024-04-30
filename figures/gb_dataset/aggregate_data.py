@@ -35,12 +35,11 @@ superfinal_binned_data = np.zeros((1, num_bins * 3))
 
 binned_path = Path("data_binned.csv")
 complete_agg_data_path = Path("agg_data.pkl")
+means_path = Path("sample_means.txt")
+missingness_path = Path("sample_missingness.txt")
 for chrom in chroms:
     agg_data = {}
     base_data_path = Path(f"input_data_{chrom}")
-    #check whether this is a bz2 or a pickle now
-    with open(base_data_path.with_suffix(".pkl"), "rb") as file:
-        pf = pickle.load(file)
     df = np.loadtxt(base_data_path.with_suffix(".csv"), delimiter="\t")
     final_data = df[:, 2::3].astype(int)
     num_samples = df[:, 1::3].astype(int)
@@ -48,24 +47,22 @@ for chrom in chroms:
     print(np.max(sample_times))
 
     #aggregating various things
-    assert pf["filter_mask"].shape[0] == final_data.shape[0]
     em_path = Path("EM_path.pkl")
     with open(em_path, "rb") as file:
         hf = pickle.load(file)
     init_mean = hf["add_run"]["ic_dist"][0, :]/(hf["add_run"]["ic_dist"][0, :]+hf["add_run"]["ic_dist"][1, :])
     agg_data["add_init_mean"] = init_mean
     neutral_ll = hf["neutral_ll"]
-    pos = pf["pos"]
+    pos = hf["pos"]
     a_ns = np.sum(num_samples, axis=1)
     a_fd = np.sum(final_data, axis=1)
     agg_data["pos"] = pos
-    agg_data["snp_ids"] = pf["snp_ids"]
+    agg_data["snp_ids"] = hf["snp_ids"]
     agg_data["a_numsamples"] = a_ns
     agg_data["a_freq"] = a_fd / a_ns
-    agg_data["a_miss"] = pf["anc_missing_frac"]
-    agg_data["filter_mask"] = pf["filter_mask"]
-    agg_data["ref_allele"] = pf["ref_allele"]
-    agg_data["alt_allele"] = pf["alt_allele"]
+    agg_data["a_miss"] = a_ns / hf["max_samples"]
+    agg_data["ref_allele"] = hf["ref_allele"]
+    agg_data["alt_allele"] = hf["alt_allele"]
     for classification_type in classification_types:
         run_ll = hf[f"{classification_type}_run"]["ll_final"]
         llr_real = 2 * (run_ll - neutral_ll)
@@ -78,22 +75,22 @@ for chrom in chroms:
         if not np.all(np.isfinite(p_vals)):
             print(f"c {chrom} {classification_type} illegal stuff happening")
     for c_type in classification_types:
-        all_p[f"{c_type}_p"] = np.concatenate((all_p[f"{c_type}_p"], agg_data[f"{c_type}_p_vals"][agg_data["filter_mask"]]))
+        all_p[f"{c_type}_p"] = np.concatenate((all_p[f"{c_type}_p"], agg_data[f"{c_type}_p_vals"]))
         all_s[f"{c_type}_s"] = np.concatenate(
-            (all_s[f"{c_type}_s"], agg_data[f"{c_type}_s_vals"][agg_data["filter_mask"]]))
+            (all_s[f"{c_type}_s"], agg_data[f"{c_type}_s_vals"]))
         if c_type == classification_types[0]:
-            all_loc_all_chrom = np.concatenate((all_loc_all_chrom, agg_data["pos"][agg_data["filter_mask"]].astype(np.int64)+start_pos))
-            all_loc_per_chrom = np.concatenate((all_loc_per_chrom, agg_data["pos"][agg_data["filter_mask"]]))
+            all_loc_all_chrom = np.concatenate((all_loc_all_chrom, agg_data["pos"].astype(np.int64)+start_pos))
+            all_loc_per_chrom = np.concatenate((all_loc_per_chrom, agg_data["pos"]))
             start_pos += np.max(agg_data["pos"])
-            all_loc[f"chr_{chrom}"] = agg_data["pos"][agg_data["filter_mask"]]
+            all_loc[f"chr_{chrom}"] = agg_data["pos"]
             all_loc[f"chr_{chrom+1}_idx_offset"] = all_loc[f"chr_{chrom}_idx_offset"] + all_loc[f"chr_{chrom}"].shape[0]
             all_loc[f"chr_{chrom+1}_pos_offset"] = all_loc[f"chr_{chrom}_pos_offset"] + all_loc[f"chr_{chrom}"][-1]
-            all_missingness = np.concatenate((all_missingness, agg_data["a_miss"][agg_data["filter_mask"]]))
-            all_means = np.concatenate((all_means, agg_data["add_init_mean"][agg_data["filter_mask"]]))
-            all_rsid = np.concatenate((all_rsid, agg_data["snp_ids"][agg_data["filter_mask"]]))
-            all_chrom = np.concatenate((all_chrom, np.zeros(agg_data["filter_mask"].sum())+chrom))
-            all_ref_allele = np.concatenate((all_ref_allele, agg_data["ref_allele"][agg_data["filter_mask"]]))
-            all_alt_allele = np.concatenate((all_alt_allele, agg_data["alt_allele"][agg_data["filter_mask"]]))
+            all_missingness = np.concatenate((all_missingness, agg_data["a_miss"]))
+            all_means = np.concatenate((all_means, agg_data["add_init_mean"]))
+            all_rsid = np.concatenate((all_rsid, agg_data["snp_ids"]))
+            all_chrom = np.concatenate((all_chrom, np.zeros_like(agg_data["pos"])+chrom))
+            all_ref_allele = np.concatenate((all_ref_allele, agg_data["ref_allele"]))
+            all_alt_allele = np.concatenate((all_alt_allele, agg_data["alt_allele"]))
             if chrom == 1:
                 all_rsid = all_rsid[1:]
                 all_chrom = all_chrom[1:]
@@ -103,15 +100,14 @@ for chrom in chroms:
                 all_means = all_means[1:]
                 all_ref_allele = all_ref_allele[1:]
                 all_alt_allele = all_alt_allele[1:]
-                MAF_THRESH = pf["maf_thresh"]
-                MISSING_THRESH = pf["missing_thresh"]
+                MAF_THRESH = hf["maf_thresh"]
+                MISSING_THRESH = hf["min_sample_density"]
         if chrom == 1:
             all_p[f"{c_type}_p"] = all_p[f"{c_type}_p"][1:]
             all_s[f"{c_type}_s"] = all_s[f"{c_type}_s"][1:]
 
 
     #binning the data for trajectories
-    sample_times = sample_times[pf["filter_mask"], :]
     if chrom == 1:
         min_c1_st = np.min(sample_times)
         max_c1_st = np.max(sample_times)
@@ -124,8 +120,8 @@ for chrom in chroms:
     binned_final_data = np.zeros((num_samples.shape[0], cutoffs.shape[0] - 1))
     binned_sample_times = np.zeros((num_samples.shape[0], cutoffs.shape[0] - 1))
     for i in range(cutoffs.shape[0] - 1):
-        binned_num_samples[:, i] = np.sum(num_samples[pf["filter_mask"], idxs[i]:idxs[i + 1]], axis=1)
-        binned_final_data[:, i] = np.sum(final_data[pf["filter_mask"], idxs[i]:idxs[i + 1]], axis=1)
+        binned_num_samples[:, i] = np.sum(num_samples[:, idxs[i]:idxs[i + 1]], axis=1)
+        binned_final_data[:, i] = np.sum(final_data[:, idxs[i]:idxs[i + 1]], axis=1)
         binned_sample_times[:, i] = (cutoffs[i] + cutoffs[i + 1]) / 2
 
     binned_csv = np.zeros((binned_final_data.shape[0], binned_final_data.shape[1] * 3))
@@ -167,3 +163,6 @@ with open(complete_agg_data_path, "wb") as file:
 
 superfinal_binned_data = superfinal_binned_data[1:, :]
 np.savetxt(binned_path, superfinal_binned_data, delimiter="\t", fmt="%d")
+
+np.savetxt(means_path, np.concatenate((MAF_THRESH, cdata["all_means"])), delimiter="\n", fmt="%.4f")
+np.savetxt(missingness_path, np.concatenate((MISSING_THRESH, cdata["all_missingness"])), delimiter="\n", fmt="%.4f")

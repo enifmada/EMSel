@@ -77,7 +77,7 @@ def generate_data(pd):
         nt = np.zeros(int(pd["sample_times"]), dtype=int) + pd["num_samples"]
         sample_times = pd["sample_times"]
         sample_locs = np.linspace(0, int(pd["num_gens"]) - 1, sample_times, dtype=int)
-    full_nts = [] if "real_data_file" not in pd else np.zeros((1, sample_times))
+    full_nts = [] if "sampling_matrix" not in pd else np.zeros((1, sample_times))
     full_num_samples = []
     full_sample_locs = []
     p_inits = np.zeros(1,)
@@ -97,7 +97,7 @@ def generate_data(pd):
         elif pd["init_cond"] == "delta":
             p = np.zeros(samples_per_run)+pd["p_init"]
         elif pd["init_cond"] == "real_special":
-            p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["real_data_file"]["all_means"], size=samples_per_run, replace=True)
+            p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["means_array"][1:], size=samples_per_run, replace=True)
         elif pd["init_cond"] == "recip":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, 2*pd["Ne"])/(2*pd["Ne"]), size=samples_per_run, p=weights)
         else:
@@ -109,10 +109,10 @@ def generate_data(pd):
                                                            pd["num_gens"], sample_locs, pd["seed"] + trial_num, small_s=pd["small_s"])
         if pd["survive_only"]:
             if "sampling_matrix" in pd:
-                if "real_data_file" in pd:
+                if "missingness_array" in pd:
                     print(f"pre-missingness adjustment: {np.mean(temp_samples):.4f} avg samples")
                     outer_rng = np.random.default_rng(pd["seed"]+trial_num)
-                    missingness_vals = outer_rng.choice(pd["real_data_file"]["all_missingness"], size=temp_samples.shape[0], replace=True)
+                    missingness_vals = outer_rng.choice(pd["missingness_array"][1:], size=temp_samples.shape[0], replace=True)
                     hits_missing = outer_rng.binomial(temp_samples, 1 - missingness_vals[:, np.newaxis],size=temp_samples.shape)
                     misses_missing = outer_rng.binomial(nt - temp_samples,1 - missingness_vals[:, np.newaxis],size=temp_samples.shape)
                     assert np.all(hits_missing + misses_missing <= nt)
@@ -122,12 +122,12 @@ def generate_data(pd):
                     temp_samples_ms = hits_missing
 
                     num_samples_mask = np.sum(temp_nts != 0, axis=1) > 1.
-                    anc_samples_mask = np.sum(temp_nts, axis=1) > pd["real_data_file"]["missing_thresh"] * np.sum(pd["sampling_matrix"][:, 1])
+                    anc_samples_mask = np.sum(temp_nts, axis=1) > pd["missingness_array"][0] * np.sum(pd["sampling_matrix"][:, 1])
                     total_fd = np.sum(temp_samples_ms, axis=1)
                     total_ns = np.sum(temp_nts, axis=1)
 
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
-                    maf_mask = min_fd > total_ns * pd["real_data_file"]["maf_thresh"]
+                    maf_mask = min_fd > total_ns * pd["means_array"][0]
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
 
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
@@ -170,7 +170,7 @@ def generate_data(pd):
     data_dict = {
         "obs_counts": full_samples[1:pd["num_sims"]+1, :],
         "true_data": full_true_data[1:pd["num_sims"]+1, :],
-        "nt": full_nts[1:pd["num_sims"]+1, :] if "real_data_file" in pd else nt,
+        "nt": full_nts[1:pd["num_sims"]+1, :] if "sampling_matrix" in pd else nt,
         "sample_times": full_num_samples if full_num_samples else sample_times,
         "sample_locs": full_sample_locs if full_sample_locs else sample_locs,
         "p_inits": p_inits[1:pd["num_sims"]+1],
@@ -631,3 +631,13 @@ def windowMatrix (values, halfWindowSize=25):
         # and copy
         extendedData[:,bIdx] = values[bIdx:eIdx]
     return extendedData
+
+def save_csv_output(hmm_dict, hmm_path):
+    num_reps = hmm_dict["neutral_ll"].shape[0]
+    info_array = np.zeros((num_reps, 3*len(hmm_dict["update_types"])), dtype=float)
+    info_array[:, 0] = hmm_dict["neutral_ll"]
+    for ud_i, ud_type in enumerate(hmm_dict["update_types"][1:], start=1):
+        info_array[:, 3*ud_i] = hmm_dict[f"{ud_type}_run"]["ll_final"]
+        info_array[:, 3*ud_i+1:3*ud_i+3] = hmm_dict[f"{ud_type}_run"]["s_final"].T
+    header = f"each row = (ll, s_1, s_2) for the following update types: {hmm_dict['update_types']}"
+    np.savetxt(hmm_path.with_suffix(".csv"), info_array, header=header)

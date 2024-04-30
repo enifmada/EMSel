@@ -49,7 +49,7 @@ and the following optional arguments:
 
 ```
 -ytg, --years_to_gen <float, default=1>
-Number of years per generation, used to convert a VCF or CSV to generations. If the sampling times in the sample file or the CSV are in generations, use the defualt of 1. Note that for the --save_csv flag, the CSV output will be in generations.
+`Number of years per generation, used to convert a VCF or CSV to generations. If the sampling times in the sample file or the CSV are in generations, use the defualt of 1. Note that for the --save_csv flag, the CSV output will be in generations.`
 ```
 
 ```

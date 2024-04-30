@@ -18,7 +18,7 @@ The CSV should be formatted as the following:
 - rows do not need to have the same length.
 - sampling times can be expressed in years or generations: see the use of the -ytg flag below.
 
-An example of a properly-formatted CSV is available as `ydufnpydunfpydu`
+An example of a properly-formatted CSV is available in `sample_datasets/add_s025_g251_d25_data.csv`
 
 ### Using EMSEL with VCFs
 
@@ -27,10 +27,10 @@ Any VCF that can be read by `scikit-allele`, it can be used with EMSel. Using EM
 ### Minimal example and output
 
 A minimal sample call to EMSel with a CSV:
-`python run_emsel.py input_data.csv output_EM time_after_zero`
+`python run_emsel.py sample_datasets/add_s025_g251_d25_data.csv output_EM time_after_zero`
 
 A minimal sample call with a VCF:
-`python run_emsel.py input_data.vcf output_EM --info_file individuals.table --info_cols Genetic_ID Date_mean time_before_present`
+`python run_emsel.py sample_datasets/GB_c22.vcf output_EM --info_file sample_datasets/GB_individuals.table --info_cols Genetic_ID Date_mean time_before_present`
 
 Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. The table is formatted as a header (briefly explaining the format) followed by one row for each replicate with 3M columns per row, where M equals the number of selection modes (including neutrality) analyzed under. Each set of 3 columns is the tuple (log_likelihood, s_1, s_2) at termination of the algorithm.
 
@@ -273,4 +273,4 @@ Sample calls to `simulate_data.py` for a non-data-matched set of simulations and
 
 `python simulate_data.py simulations_folder -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
 
-`python simulate_data.py data_simulations -s .005 .05 .2 --sel_types neutral add rec --data_matched blah argh GB_aDNA_sample_sizes.table`
+`python simulate_data.py data_simulations -s .005 .05 .2 --sel_types neutral add rec --data_matched GB_means.txt GB_missingness.txt GB_sample_sizes.table`

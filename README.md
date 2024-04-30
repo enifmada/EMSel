@@ -1,6 +1,10 @@
 # EMSel
 Code accompanying Fine and Steinrücken (2024). We provide the ability to simulate (`simulate_data.py`) and analyze (`run_emsel.py`) a time-series allele frequency dataset under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid), as well as the data and code to reproduce the figures from our paper.
 
+## Installation
+
+To use EMSel, either clone this repository or download it as a .zip file. EMSel was developed in Python 3.8, so running it in a standalone environment is encouraged. A list of additional packages needed is in `requirements.txt`; to install everything needed, run the command `pip install -r requirements.txt`.
+
 ## Running EMSel
 
 To run EMSel (via `run_emsel.py`), you must have either a CSV file or a VCF file.
@@ -14,34 +18,34 @@ The CSV should be formatted as the following:
 - rows do not need to have the same length.
 - sampling times can be expressed in years or generations: see the use of the -ytg flag below.
 
-An example of a properly-formatted CSV is available in the `simulations` folder.
+An example of a properly-formatted CSV is available as `ydufnpydunfpydu`
 
 ### Using EMSEL with VCFs
 
-Fortunately the formatting of VCFs is standardized. If the VCF can be read by `scikit-allele`, it can be used with EMSel. In addition, however, using EMSel with a VCF requires a file containing the same strings as the `samples` key in VCF and a corresponding sampling time (in years or generations, see the -ytg flag below) for each sample.
+Any VCF that can be read by `scikit-allele`, it can be used with EMSel. Using EMSel with a VCF additionally requires a file containing the same strings as the `samples` key in the VCF and a corresponding sampling time (in years or generations, see the -ytg flag below) for each sample.
 
 ### Minimal example and output
 
 A minimal sample call to EMSel with a CSV:
-`python run_emsel.py input_data.csv output_EM.pkl.bz2`
+`python run_emsel.py input_data.csv output_EM time_after_zero`
 
 A minimal sample call with a VCF:
-`python run_emsel.py input_data.vcf output_EM.pkl.bz2 --sample_file individuals.table --sample_cols Genetic_ID Date_mean`
+`python run_emsel.py input_data.vcf output_EM --info_file individuals.table --info_cols Genetic_ID Date_mean time_before_present`
 
-Both of these will create the file `output_EM.pkl.bz2` containing the results of running EMSel in all available modes of selection. The output is a nested dictionary-of-dictionaries containing the following keys, letting `N` be the number of replicates in the dataset:
-- `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
-- `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under neutrality. The second dimension depends on which initial distribution is used for calculation.
-- `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
-- for each mode of selection analyzed under, a sub-dictionary with key `{update_type}_run` (e.g. `add_run` for additive selection), containing the following keys:
-  - `s_final` (N, 2) - the maximum-likelihood estimate of the selection coefficients for each replicate.
-  - `ll_final` (N,) - the maximum log-likelihood estimate for each replicate.
-  - `ic_dist` (N, varies) - the estimated initial distribution parameters for each replicate. The second dimension depends on which initial distribution is used for calculation.
-  - `itercount_hist` - the number of iterations for convergence for each replicate.
-  - `exit_codes` - exit codes indicating the termination statuts of each replicate. See section "Exit Codes".
+Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. 
+
+A more complete output file will also be saved if the `--full_output` flag is used - see that section of the README for a description. 
  
 ### Command-line arguments
 
-In addition to the required `input` and `output` paths, EMSel has the following optional arguments:
+In addition to the required `input` and `output` paths, EMSel has one required argument:
+
+```
+time_after_zero | time_before_present
+Use of exactly one of these arguments is required to specify whether the sample dates provided in the CSV/VCF start at zero at the earliest time and count up towards the present (time_after_zero) or start at zero at the present and count up moving backward in time (time_before_present).
+```
+
+and the following optional arguments:
 
 ```
 -ytg, --years_to_gen <float, default=1>
@@ -55,31 +59,24 @@ Number of years per generation, used to convert a VCF or CSV to generations. If 
 ```
 
 ```
--ic, --init_cond <str, default='uniform'>
-Initial condition (pi_0 in HMM language) for initialization of the HMM. Options are: 
+-sid, --starting_init_dist <str, default='uniform'>
+Starting initial distribution (pi_0 in HMM language) for initialization of the HMM. Options are: 
 - "uniform" - uniform, equiprobable prior (recommended/default)
 - "delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a delta function at p = x.
 - "beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the initial condition to a symmetric beta function beta(alpha, alpha).
 - "spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set the initial condition to a mixture of uniform with weight 1-x and a delta function at p = y with weight x.
-- "theta" - generates an initial condition where the probability in hidden state i is proportional to 1/i. Scales with the inputted value of -mu.
-- "theta-trunc" - use "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to one in which the probaiblity in hidden state i is proportional to 1/i, but states with allele frequency <= x have weight 0 (intended to prevent the weights from diverging near zero).
+Unless --ic_update_type fixed is provided as an additional command line argument, this starting initial distribution will be re-estimated as part of the EM procedure.
 ```
 
 ```
---ic_dict <1+ arguments of the form 'str int'>
-Additional arguments if -ic is not "uniform" or "theta".
+--sid_dict <1+ arguments of the form 'str int'>
+Additional arguments if -sid is not "uniform" or "theta".
 ```
 
 ```
 -Ne <int, default=10000>
-Effective population size. Only used in the calculation of the transition state matrix.
+Effective population size.
 ```
-
-```
--mu <float, default=1.25e-8>
-Mutation rate, expressed mutations per base pair per generation. Only affects the weights in the "theta" and "theta-trunc" initial distributions.
-```
-
 
 ```
 --hidden_interp <str, default='chebyshev'>
@@ -92,11 +89,12 @@ Method of estimating the initial condition. Options are:
 - "beta" - estimate the parameters of a beta distribution. Output dictionary values involving the initial distribution will have shape (N,2)
 - "delta" - estimate the parameter of a delta distribution. Output dictionary values will have shape (N, 1)
 - "baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for all hidden states. Output dictionary values will have shape (N, Ns), where Ns = the number of hidden states.
-- any other string will cause the initial condition to not be estimated (i.e. pi_k = pi_0 for all iterations k). Output dictionary values will have shape (N, 1).
+- "fixed" - do not update the estimated initial condition. Output dictionary values will have shape (N, 1)
+Any other string will raise a ValueError.
 ```
 
 ```
---update_types <1+ str, default='all'>
+--selection_modes <1+ str, default='all'>
 Which modes of selection to analyze under. You can list as many of ["neutral", "add", "dom", "rec", "het", "full"] as you would like. Neutral is automatically run. The default, "all", is a shorthand for running all modes of selection.
 ```
 
@@ -112,38 +110,65 @@ Number of hidden states to use in the HMM. Computing time scales as O(hidden sta
 
 ```
 -t, --tol <float, default=1e-3>
-Stopping criterion - EMSel is said to have converged if log-likelihood at iteration k+1 - log-likelihood at iteration k < tol.
+Stopping criterion - EMSel converges for a replicate if (log-likelihood at iteration k+1 - log-likelihood at iteration k) < tol.
 ```
 
 ```
 -m, --maxiter <int, default=2000>
-Maximum number of iterations of EMSel before terminating. Across both our simulated datasets and the UK aDNA dataset, the maximum number of iterations seen was [idk]
+Maximum number of iterations of EMSel before terminating.
 ```
 
 ```
 --min_itercount <int, default=5>
-Minimum number of iterations for EMSel to run, even if the stopping criterion is met earlier. Helps alleviate strangeness in the distribution of log-likelihoods/p-values near 1. However, since p-values near 1 are typically unimportant, setting this to 0 to slightly speed up computation is reasonable.
+Minimum number of iterations for EMSel to run, even if the stopping criterion is met earlier. Removes irregularities in the distribution of log-likelihoods/p-values near 1. However, since p-values near 1 are typically unimportant, setting this to 0 to slightly speed up computation is reasonable.
 ```
 
 ```
---sample_file <str>
+--info_file <str>
 When input is a VCF, path to a sample file readable by pandas.read_csv containing a column of IDs matching the IDs in the VCF as well as a column of sampling times (in years or generations, use -ytg to normalize to generations if years).
 ```
 
 ```
---sample_cols <2 strs>
+--info_cols <2 strs>
 Column names, in (IDs, times) order, to extract from the sample file.
 ```
 
 ```
 --save_csv
-If used and input is a VCF, saves a CSV of the same name containing the intermediate conversion of the VCF into (sampling time, derive alleles, total sample) triplets to speed up future runs. Note that the saved CSV will include conversion from years to generations. If the input is a VCF and a CSV of the same name exists, the CSV will be used with years-to-generation=1.
+If input is a VCF, saves a CSV of the same name containing the intermediate conversion of the VCF into (sampling time, derive alleles, total sample) triplets to speed up future runs. Note that the saved CSV will include conversion from years to generations.
+```
+
+```
+--full_output
+Saves a full output file to the same location as the output_EM .csv file (with a .pkl suffix). The full output file is a nested dictionary-of-dictionaries containing the following keys, letting `N` be the number of replicates in the dataset:
+- `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
+- `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under neutrality. The second dimension depends on which initial distribution is used for calculation.
+- `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
+- for each mode of selection analyzed under, a sub-dictionary with key `{update_type}_run` (e.g. `add_run` for additive selection), containing the following keys:
+  - `s_final` (N, 2) - the maximum-likelihood estimate of the selection coefficients for each replicate.
+  - `ll_final` (N,) - the maximum log-likelihood estimate for each replicate.
+  - `ic_dist` (N, varies) - the estimated initial distribution parameters for each replicate. The second dimension depends on which initial distribution is used for calculation.
+  - `itercount_hist` (N,) - the number of iterations for convergence for each replicate.
+  - `exit_codes` (N,) - exit codes indicating the termination statuts of each replicate. See section "Exit Codes".
 ```
 
 ```
 --progressbar
 Track the progress of EMSel with a tqdm progressbar.
 ```
+
+### Exit Codes
+
+The 'exit_codes' array contained in the full_output file has the following possible values for each replicate:
+- 0: Replicated converged successfully.
+- 1: Initial distribution estimation failed, causing immediate termination of the EM algorithm.
+- 2: Invalid EM step proposed (s values too large). Initial distribution was set to fixed, so no improvements possible. Immediate termination of EM algorithm.
+- 3: Decreasing likelihood for two or more iterations, outside of the first `min_itercount` iterations. Immediate termination of EM algorithm.
+- 4: Replicate converged successfully, but at some point an invalid EM step was proposed. Initial distribution continued to be updated subsequently.
+- 7: Continuing for `min_itercount` iterations caused the likelihood to decrease. Parameters at the iteration with maximum likelihood were returned.
+- 8: Convergence successfully achieved before `min_itercount` iterations.
+- 9: Maximum number of iterations exceeded without convergence.
+- 12: Convergence successfully achieved before `min_itercount` iterations, with an invalid EM step at some iteration (combination of exit codes 4 and 8).
 
 ## Simulating data
 
@@ -194,8 +219,8 @@ Effective population size for the simulations.
 ```
 
 ```
---data_matched <2 strs>
-Provide the path to a sim_data file and a sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations, and sampling scheme as the inputted real data file. The sim_data file can be obtained by running EMSel, the sample_sizes.table file by running the AADR_to_VCF pipeline.
+--data_matched <3 strs>
+Provide the path to a sample_means.txt file, a sample_missingness.txt file and a sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations, and sampling scheme as the inputted real data file. The sample_means.txt and sample_missingness.txt files can be obtained by running EMSel, the sample_sizes.table file by running the pipeline in the extract_vcfs folder. Example files are also provided.
 ```
 
 ```
@@ -235,4 +260,4 @@ Sample calls to `simulate_data.py` for a non-data-matched set of simulations and
 
 `python simulate_data.py simulations_folder -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
 
-`python simulate_data.py data_simulations -s .005 .05 .2 --sel_types neutral add rec --data_matched UK_aDNA_sim_data.pkl UK_aDNA_sample_sizes.table`
+`python simulate_data.py data_simulations -s .005 .05 .2 --sel_types neutral add rec --data_matched blah argh GB_aDNA_sample_sizes.table`

@@ -32,7 +32,7 @@ A minimal sample call to EMSel with a CSV:
 A minimal sample call with a VCF:
 `python run_emsel.py input_data.vcf output_EM --info_file individuals.table --info_cols Genetic_ID Date_mean time_before_present`
 
-Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. 
+Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. The table is formatted as a header (briefly explaining the format) followed by one row for each replicate with 3M columns per row, where M equals the number of selection modes (including neutrality) analyzed under. Each set of 3 columns is the tuple (log_likelihood, s_1, s_2) at termination of the algorithm.
 
 A more complete output file will also be saved if the `--full_output` flag is used - see that section of the README for a description. 
  
@@ -52,6 +52,15 @@ and the following optional arguments:
 Number of years per generation, used to convert a VCF or CSV to generations. If the sampling times in the sample file or the CSV are in generations, use the defualt of 1. Note that for the --save_csv flag, the CSV output will be in generations.
 ```
 
+```
+-maf, --min_allele_freq <float, default=0.05>
+Minor allele frequency (MAF) threshold to filter replicates by. Replicates with min(mean(ref_allele), mean(alt_allele)) < MAF are masked.
+```
+
+```
+--min_sample_density <float, default=0.1>
+Minimum sample density to filter replicates by. Replicates with sum(num_samples) < (max_samples * min_sample_density_thresh) are masked. max_samples is calculated correctly (inferring haploids/diploids) from a VCF, and simply computed as max(sum(num_samples, axis=1)) for CSVs, where the sum is taken across timepoints for each replicate.
+```
 
 ```
 --s_init <2 floats, default=0 0>
@@ -140,7 +149,7 @@ If input is a VCF, saves a CSV of the same name containing the intermediate conv
 
 ```
 --full_output
-Saves a full output file to the same location as the output_EM .csv file (with a .pkl suffix). The full output file is a nested dictionary-of-dictionaries containing the following keys, letting `N` be the number of replicates in the dataset:
+Saves a full output file to the same location as the output_EM.csv file (with a .pkl suffix). The full output file is a nested dictionary-of-dictionaries containing the following keys, letting `N` be the number of filtered replicates in the dataset:
 - `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
 - `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under neutrality. The second dimension depends on which initial distribution is used for calculation.
 - `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
@@ -150,6 +159,11 @@ Saves a full output file to the same location as the output_EM .csv file (with a
   - `ic_dist` (N, varies) - the estimated initial distribution parameters for each replicate. The second dimension depends on which initial distribution is used for calculation.
   - `itercount_hist` (N,) - the number of iterations for convergence for each replicate.
   - `exit_codes` (N,) - exit codes indicating the termination statuts of each replicate. See section "Exit Codes".
+
+Additionally, if the input file is a .vcf, several additional keys are added from the VCF file to facilitate additional data analysis (see the figures/gb_dataset folder), each of shape (N,):
+- `pos` - chromosomal position of each replicate. "variants/POS" from the VCF file.
+- `snp_ids` - "variants/ID" from the VCF file.
+- `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.
 ```
 
 ```
@@ -220,7 +234,7 @@ Effective population size for the simulations.
 
 ```
 --data_matched <3 strs>
-Provide the path to a sample_means.txt file, a sample_missingness.txt file and a sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations, and sampling scheme as the inputted real data file. The sample_means.txt and sample_missingness.txt files can be obtained by running EMSel, the sample_sizes.table file by running the pipeline in the extract_vcfs folder. Example files are also provided.
+Provide the path to a sample_means.txt file, a sample_missingness.txt file and a sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations, and sampling scheme as the inputted real data file. The sample_means.txt and sample_missingness.txt files can be obtained by running the aggregate_data.py script (in figures/gb_dataset) after running EMSel. sample_means.txt should be formatted as a MAF filter on the first line followed by one float per line representing estimated initial frequencies to draw from. sample_missingness.txt should be formatted as a missingness filter on the first line followed by one float per line representing sample missingness to draw from. The sample_sizes.table file can be obtained by running the pipeline in the extract_vcfs folder. Example files are also provided.
 ```
 
 ```

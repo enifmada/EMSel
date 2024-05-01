@@ -164,6 +164,8 @@ Additionally, if the input file is a .vcf, several additional keys are added fro
 - `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.
 ```
 
+<code>--force [haploid|diploid]
+If the inputted VCF file contains only homozygous loci, use this flag to determine whether the genotypes are read as haploid (1 sample per locus per individual) or homozygous diploid (2 samples per locus per individual). If the inputted VCF file is not all homozygotes, this argument has no effect. </code>
 
 
 <code>--progressbar

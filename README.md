@@ -40,139 +40,160 @@ A more complete output file will also be saved if the `--full_output` flag is us
 
 In addition to the required `input` and `output` paths, EMSel has one required argument:
 
-<code>time_after_zero | time_before_present
-Use of exactly one of these arguments is required to specify whether the sample dates provided in the CSV/VCF start at zero at the earliest time and count up towards the present (time_after_zero) or start at zero at the present and count up moving backward in time (time_before_present).</code>
+```
+time_after_zero | time_before_present
+    Use of exactly one of these arguments is required to specify whether the sample dates provided in the CSV/VCF start
+    at zero at the earliest time and count up towards the present (time_after_zero) or start at zero at the present and
+    count up moving backward in time (time_before_present).
+```
 
 and the following optional arguments:
 
-<code>-ytg, --years_to_gen <float, default=1>
-Number of years per generation, used to convert a VCF or CSV to generations. If the sampling times in the sample file or the CSV are in generations, use the defualt of 1. Note that for the --save_csv flag, the CSV output will be in generations.</code>
-
-
-<code>-maf, --min_allele_freq <float, default=0.05>
-Minor allele frequency (MAF) threshold to filter replicates by. Replicates with min(mean(ref_allele), mean(alt_allele)) < MAF are masked.</code>
-
-<code>--min_sample_density <float, default=0.1>
-Minimum sample density to filter replicates by. Replicates with sum(num_samples) < (max_samples * min_sample_density_thresh) are masked. max_samples is calculated correctly (inferring haploids/diploids) from a VCF, and simply computed as max(sum(num_samples, axis=1)) for CSVs, where the sum is taken across timepoints for each replicate.</code>
-
-
-<code>--s_init <2 floats, default=0 0>
-(s1, s2) for initialization of the HMM and the inital "guess" for each replicate.</code>
-
-
-
 ```
+-ytg, --years_to_gen <float, default=1>
+    Number of years per generation, used to convert a VCF or CSV to generations. If the sampling times in the sample
+    file or the CSV are in generations, use the defualt of 1. Note that for the --save_csv flag, the CSV output
+    will be in generations.
+
+
+-maf, --min_allele_freq <float, default=0.05>
+    Minor allele frequency (MAF) threshold to filter replicates by.
+    Replicates with min(mean(ref_allele), mean(alt_allele)) < MAF are masked.
+
+
+--min_sample_density <float, default=0.1>
+    Minimum sample density to filter replicates by.
+    Replicates with sum(num_samples) < (max_samples * min_sample_density_thresh) are masked. max_samples is
+    calculated correctly (inferring haploids/diploids) from a VCF, and simply computed as max(sum(num_samples, axis=1))
+    for CSVs, where the sum is taken across timepoints for each replicate.
+
+
+--s_init <2 floats, default=0 0>
+    (s1, s2) for initialization of the HMM and the inital "guess" for each replicate.
+
+
 -sid, --starting_init_dist <str, default='uniform'>
-Starting initial distribution (pi_0 in HMM language) for initialization of the HMM. Options are: 
-- "uniform" - uniform, equiprobable prior (recommended/default)
-- "delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a delta function at p = x.
-- "beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the initial condition to a symmetric beta function beta(alpha, alpha).
-- "spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set the initial condition to a mixture of uniform with weight 1-x and a delta function at p = y with weight x.
-Unless --ic_update_type fixed is provided as an additional command line argument, this starting initial distribution will be re-estimated as part of the EM procedure.
-```
+    Starting initial distribution (pi_0 in HMM language) for initialization of the HMM. Options are: 
+    - "uniform" - uniform, equiprobable prior (recommended/default)
+    - "delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a delta function at p = x.
+    - "beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the initial condition to
+         a symmetric beta function beta(alpha, alpha).
+    - "spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set the initial condition to a
+         mixture of uniform with weight 1-x and a delta function at p = y with weight x.
+    Unless --ic_update_type fixed is provided as an additional command line argument, this starting initial distribution
+    will be re-estimated as part of the EM procedure.
 
 
-
-<code>--sid_dict <1+ arguments of the form 'str int'>
-Additional arguments if -sid is not "uniform" or "theta".</code>
-
+--sid_dict <1+ arguments of the form 'str int'>
+    Additional arguments if -sid is not "uniform" or "theta".
 
 
-<code>-Ne <int, default=10000>
-Effective population size.</code>
+-Ne <int, default=10000>
+    Effective population size.
 
 
+--hidden_interp <str, default='chebyshev'>
+    Whether to use Chebyshev nodes for spacing of hidden states (highly recommended) or linear
+    (via --hidden_interp linear). Chebyshev nodes do not impact runtime and appear to significantly improve accuracy
+    of selection coefficient estimation at high selection coefficients, especially for certain modes of selection.
 
-<code>--hidden_interp <str, default='chebyshev'>
-Whether to use Chebyshev nodes for spacing of hidden states (highly recommended) or linear (via --hidden_interp linear). Chebyshev nodes do not impact runtime and appear to significantly improve accuracy of selection coefficient estimation at high selection coefficients, especially for certain modes of selection.</code>
 
-
-
-```
 --ic_update_type <str, default='beta'>
-Method of estimating the initial condition. Options are:
-- "beta" - estimate the parameters of a beta distribution. Output dictionary values involving the initial distribution will have shape (N,2)
-- "delta" - estimate the parameter of a delta distribution. Output dictionary values will have shape (N, 1)
-- "baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for all hidden states. Output dictionary values will have shape (N, Ns), where Ns = the number of hidden states.
-- "fixed" - do not update the estimated initial condition. Output dictionary values will have shape (N, 1)
-Any other string will raise a ValueError.
-```
+    Method of estimating the initial condition. Options are:
+    - "beta" - estimate the parameters of a beta distribution. Output dictionary values involving
+        the initial distribution will have shape (N,2)
+    - "delta" - estimate the parameter of a delta distribution. Output dictionary values will have shape (N, 1)
+    - "baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for all hidden states.
+        Output dictionary values will have shape (N, Ns), where Ns = the number of hidden states.
+    - "fixed" - do not update the estimated initial condition. Output dictionary values will have shape (N, 1)
+    Any other string will raise a ValueError.
 
 
-
-<code>--selection_modes <1+ str, default='all'>
-Which modes of selection to analyze under. You can list as many of ["neutral", "add", "dom", "rec", "het", "full"] as you would like. Neutral is automatically run. The default, "all", is a shorthand for running all modes of selection.</code>
-
-
-
-<code>-nc, --num_cores <int, default=1>
-Number of cores to parallelize over. Joblib is used for parallelization, making EMSel easily parallizable on a computing cluster.</code>
+--selection_modes <1+ str, default='all'>
+    Which modes of selection to analyze under. You can list as many of ["neutral", "add", "dom", "rec", "het", "full"]
+    as you would like. Neutral is automatically run. The default, "all", is a shorthand for running all modes of
+    selection.
 
 
-
-<code>-ns, --num_states <int, default=500>
-Number of hidden states to use in the HMM. Computing time scales as O(hidden states^3), roughly. Accuracy is reduced below approximately 200-250 hidden states.</code>
-
-
-
-<code>-t, --tol <float, default=1e-3>
-Stopping criterion - EMSel converges for a replicate if (log-likelihood at iteration k+1 - log-likelihood at iteration k) < tol.</code>
+-nc, --num_cores <int, default=1>
+    Number of cores to parallelize over. Joblib is used for parallelization, making EMSel easily parallizable on a
+    computing cluster.
 
 
-
-<code>-m, --maxiter <int, default=2000>
-Maximum number of iterations of EMSel before terminating.</code>
-
-
-
-<code>--min_itercount <int, default=5>
-Minimum number of iterations for EMSel to run, even if the stopping criterion is met earlier. Removes irregularities in the distribution of log-likelihoods/p-values near 1. However, since p-values near 1 are typically unimportant, setting this to 0 to slightly speed up computation is reasonable.</code>
+-ns, --num_states <int, default=500>
+    Number of hidden states to use in the HMM. Computing time scales as O(hidden states^3), roughly.
+    Accuracy is reduced below approximately 200-250 hidden states.
 
 
-
-<code>--info_file <str>
-When input is a VCF, path to a sample file readable by pandas.read_csv containing a column of IDs matching the IDs in the VCF as well as a column of sampling times (in years or generations, use -ytg to normalize to generations if years).</code>
-
-
-
-<code>--info_cols <2 strs>
-Column names, in (IDs, times) order, to extract from the sample file.</code>
+-t, --tol <float, default=1e-3>
+    Stopping criterion - EMSel converges for a replicate if
+    (log-likelihood at iteration k+1 - log-likelihood at iteration k) < tol.
 
 
-
-<code>--save_csv
-If input is a VCF, saves a CSV of the same name containing the intermediate conversion of the VCF into (sampling time, derive alleles, total sample) triplets to speed up future runs. Note that the saved CSV will include conversion from years to generations.</code>
-
+-m, --maxiter <int, default=2000>
+    Maximum number of iterations of EMSel before terminating.
 
 
-```
+--min_itercount <int, default=5>
+    Minimum number of iterations for EMSel to run, even if the stopping criterion is met earlier. Removes irregularities
+    in the distribution of log-likelihoods/p-values near 1. However, since p-values near 1 are typically unimportant,
+    setting this to 0 to slightly speed up computation is reasonable.
+
+
+--info_file <str>
+    When input is a VCF, path to a sample file readable by pandas.read_csv containing a column of IDs matching the IDs
+    in the VCF as well as a column of sampling times
+    (in years or generations, use -ytg to normalize to generations if years).
+
+
+--info_cols <2 strs>
+    Column names, in (IDs, times) order, to extract from the sample file.
+
+
+--save_csv
+    If input is a VCF, saves a CSV of the same name containing the intermediate conversion of the VCF into
+    (sampling time, derive alleles, total sample) triplets to speed up future runs. Note that the saved CSV will
+    include conversion from years to generations.
+
+
 --full_output
-Saves a full output file to the same location as the output_EM.csv file (with a .pkl suffix). The full output file is a nested dictionary-of-dictionaries containing the following keys, letting `N_init` and `N` be the number of input and filtered replicates, respectively, in the dataset:
-- `max_samples` (1,) - the maximum number of samples for a single replicate in the dataset.
-- `sample_mask` (N_init,) - a boolean mask, where True indicates that a given replicate is in the final dataset (i.e. has not been filtered out)
-- `sample_idxs (N,) - the indices of the filtered replicates with respect to the rows of the initial dataset.
-- `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
-- `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under neutrality. The second dimension depends on which initial distribution is used for calculation.
-- `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
-- for each mode of selection analyzed under, a sub-dictionary with key `{update_type}_run` (e.g. `add_run` for additive selection), containing the following keys:
-  - `s_final` (N, 2) - the maximum-likelihood estimate of the selection coefficients for each replicate.
-  - `ll_final` (N,) - the maximum log-likelihood estimate for each replicate.
-  - `ic_dist` (N, varies) - the estimated initial distribution parameters for each replicate. The second dimension depends on which initial distribution is used for calculation.
-  - `itercount_hist` (N,) - the number of iterations for convergence for each replicate.
-  - `exit_codes` (N,) - exit codes indicating the termination statuts of each replicate. See section "Exit Codes".
+    Saves a full output file to the same location as the output_EM.csv file (with a .pkl suffix). The full output
+    file is a nested dictionary-of-dictionaries containing the following keys, letting `N_init` and `N` be
+    the number of input and filtered replicates, respectively, in the dataset:
+    - `max_samples` (1,) - the maximum number of samples for a single replicate in the dataset.
+    - `sample_mask` (N_init,) - a boolean mask, where True indicates that a given replicate is in the final dataset
+         (i.e. has not been filtered out)
+    - `sample_idxs (N,) - the indices of the filtered replicates with respect to the rows of the initial dataset.
+    - `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
+    - `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under
+        neutrality. The second dimension depends on which initial distribution is used for calculation.
+    - `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
+    - for each mode of selection analyzed under, a sub-dictionary with key `{update_type}_run`
+        (e.g. `add_run` for additive selection), containing the following keys:
+          - `s_final` (N, 2) - the maximum-likelihood estimate of the selection coefficients for each replicate.
+          - `ll_final` (N,) - the maximum log-likelihood estimate for each replicate.
+          - `ic_dist` (N, varies) - the estimated initial distribution parameters for each replicate. The second
+                dimension depends on which initial distribution is used for calculation.
+          - `itercount_hist` (N,) - the number of iterations for convergence for each replicate.
+          - `exit_codes` (N,) - exit codes indicating the termination statuts of each replicate.
+               See section "Exit Codes".
 
-Additionally, if the input file is a .vcf, several additional keys are added from the VCF file to facilitate additional data analysis (see the figures/gb_dataset folder), each of shape (N,):
-- `pos` - chromosomal position of each replicate. "variants/POS" from the VCF file.
-- `snp_ids` - "variants/ID" from the VCF file.
-- `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.
+    Additionally, if the input file is a .vcf, several additional keys are added from the VCF file to facilitate
+    additional data analysis (see the figures/gb_dataset folder), each of shape (N,):
+    - `pos` - chromosomal position of each replicate. "variants/POS" from the VCF file.
+    - `snp_ids` - "variants/ID" from the VCF file.
+    - `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.
+
+
+--force [haploid|diploid]
+    If the inputted VCF file contains only homozygous loci, use this flag to determine whether the genotypes are
+    read as haploid (1 sample per locus per individual) or homozygous diploid (2 samples per locus per individual).
+    If the inputted VCF file is not all homozygotes, this argument has no effect. 
+
+
+--progressbar
+    Track the progress of EMSel with a tqdm progressbar.
 ```
-
-<code>--force [haploid|diploid]
-If the inputted VCF file contains only homozygous loci, use this flag to determine whether the genotypes are read as haploid (1 sample per locus per individual) or homozygous diploid (2 samples per locus per individual). If the inputted VCF file is not all homozygotes, this argument has no effect. </code>
-
-
-<code>--progressbar
-Track the progress of EMSel with a tqdm progressbar.</code>
 
 
 ### Exit Codes
@@ -196,70 +217,78 @@ The 'exit_codes' array contained in the full_output file has the following possi
 
 There is one required argument - a path to an output directory. In addition, there are the following positional arguments:
 
-
-<code>-n, --num_sims <int, default=100>
-Number of replicates simulated from each set of simulation parameters.</code>
-
-
-
-<code>-s, --sel_coeffs <float or sequence of floats, default=.005, .01, .025, .05>
-Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness of the derived homozygote), with s_1 = s_2 / 2. All other modes of selection are governed by a single parameter. Simulating under neutrality should be done by adding "neutral" to the --sel_types flag, not by including 0 in this flag.</code>
+```
+-n, --num_sims <int, default=100>
+Number of replicates simulated from each set of simulation parameters.
 
 
-
-<code>--sel_types <str or sequence of strs, default=neutral add dom rec over under>
-Modes of selection to simulate under. Must be a (non-strict) subset of {"neutral", "add", "dom", "rec", "over", "under"}.</code>
-
-
-
-<code>-g, --num_gens <int or sequence of ints, default=101 251 1001>
-Number of generations to simulate for. </code>
+-s, --sel_coeffs <float or sequence of floats, default=.005, .01, .025, .05>
+    Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness of the derived homozygote),
+    with s_1 = s_2 / 2. All other modes of selection are governed by a single parameter. Simulating under neutrality
+    should be done by adding "neutral" to the --sel_types flag, not by including 0 in this flag.
 
 
+--sel_types <str or sequence of strs, default=neutral add dom rec over under>
+    Modes of selection to simulate under. Must be a (non-strict) subset of
+    {"neutral", "add", "dom", "rec", "over", "under"}.
 
-<code>-ic, --init_conds <float, str, or sequence of floats and strs, default=.005, .25, "recip">
-Initial conditions to simulate under. Floats are interpreted as initializing each simulation from the same fixed allele frequency. Currently, the only non-float option is "recip", which samples from a distribution where the probability of initial frequency p is proportional to 1/p. TODO: handle strings other than "recip" properly and describe their initial distributions.</code>
+
+-g, --num_gens <int or sequence of ints, default=101 251 1001>
+    Number of generations to simulate for. 
 
 
-
-<code>-ns, --num_samples <int, default=50>
-Number of haploid samples drawn at each sampling timepoint.</code>
+-ic, --init_conds <float, str, or sequence of floats and strs, default=.005, .25, "recip">
+    Initial conditions to simulate under. Floats are interpreted as initializing each simulation from the same fixed
+    allele frequency. Currently, the only non-float option is "recip", which samples from a distribution where the
+    probability of initial frequency p is proportional to 1/p.
 
 
 
-<code>-st, --sampling_times <int, default=11>
-Number of equally-spaced timepoints to sample at. Samples are taken at the first generation, the last generation and (sampling_times - 2) points equally spaced between.</code>
+-ns, --num_samples <int, default=50>
+    Number of haploid samples drawn at each sampling timepoint.
 
 
 
-<code>-Ne <int, default=10000>
-Effective population size for the simulations.</code>
+-st, --sampling_times <int, default=11>
+    Number of equally-spaced timepoints to sample at. Samples are taken at the first generation,
+    the last generation and (sampling_times - 2) points equally spaced between.
 
 
 
-<code>--data_matched <3 strs>
-Provide the path to a sample_means.txt file, a sample_missingness.txt file and a sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations, and sampling scheme as the inputted real data file. The sample_means.txt and sample_missingness.txt files can be obtained by running the aggregate_data.py script (in figures/gb_dataset) after running EMSel. sample_means.txt should be formatted as a MAF filter on the first line followed by one float per line representing estimated initial frequencies to draw from. sample_missingness.txt should be formatted as a missingness filter on the first line followed by one float per line representing sample missingness to draw from. The sample_sizes.table file can be obtained by running the pipeline in the extract_vcfs folder. Example files are also provided.</code>
+-Ne <int, default=10000>
+    Effective population size for the simulations.
 
 
-
-<code>--small_s
-Use of this flag indicates that the formula for updating allele frequencies in the Wright-Fisher model should use the small s approximation (p' = p + p(1-p)*((1-2p)s1 + p*s2)) rather than the full formula, p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2).</code>
-
-
-
-<code>--seed <int>
-Seed to simulate from. Simulations from identical seed values are identical.</code>
-
-
-
-<code>--save_plots
-If used, one plot per simulation condition plotting the true allele frequency for each replicate as well as the mean allele frequency will be produced.</code>
+--data_matched <3 strs>
+    Provide the path to a sample_means.txt file, a sample_missingness.txt file and a sample_sizes.table file to
+    override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations,
+    and sampling scheme as the inputted real data file. The sample_means.txt and sample_missingness.txt files can be
+    obtained by running the aggregate_data.py script (in figures/gb_dataset) after running EMSel. sample_means.txt
+    should be formatted as a MAF filter on the first line followed by one float per line representing estimated
+    initial frequencies to draw from. sample_missingness.txt should be formatted as a missingness filter on the first
+    line followed by one float per line representing sample missingness to draw from. The sample_sizes.table file
+    can be obtained by running the pipeline in the figures/gb_dataset/extract_vcfs folder.
+    Example files are also provided.
 
 
+--small_s
+    Use of this flag indicates that the formula for updating allele frequencies in the Wright-Fisher model should
+    use the small s approximation (p' = p + p(1-p)*((1-2p)s1 + p*s2)) rather than the full formula,
+    p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2).
 
-<code>--suffix <str>
-Adds a suffix to each file to help distinguish different simulation runs.</code>
 
+--seed <int>
+    Seed to simulate from. Simulations from identical seed values are identical.
+
+
+--save_plots
+    If used, one plot per simulation condition plotting the true allele frequency for each replicate as well as
+    the mean allele frequency will be produced.
+
+
+--suffix <str>
+    Adds a suffix to each file to help distinguish different simulation runs.
+```
 
 When specifying multiple values for sel_coeffs, sel_types, num_gens, and init_conds, simulation is done for each combination on values (i.e. on itertools.product(sel_coeffs, sel_types, num_gens, init_conds), for a total of len(sel_coeffs)*len(sel_types)*len(num_gens)*len(init_conds) sets of files.
 

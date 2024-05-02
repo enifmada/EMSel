@@ -32,7 +32,7 @@ A minimal sample call to EMSel with a CSV:
 A minimal sample call with a VCF:
 `python run_emsel.py sample_datasets/GB_c22.vcf output_EM --info_file sample_datasets/GB_individuals.table --info_cols Genetic_ID Date_mean time_before_present`
 
-Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. The table is formatted as a header (briefly explaining the format) followed by one row for each replicate with 3M columns per row, where M equals the number of selection modes (including neutrality) analyzed under. Each set of 3 columns is the tuple (log_likelihood, s_1, s_2) at termination of the algorithm.
+Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. The table is formatted as a indexed and column-labelled csv with one row for each replicate with (3M+2) columns per row, where M equals the number of non-neutral selection modes analyzed under. The first column are the index of each row within the unfiltered dataset (see -maf and --min_sample_density for a description of the filters). The second column is the neutral log-likelihood. Each set of 3 subsequent columns is the tuple (log_likelihood, s_1, s_2) for each selection mode at termination of the algorithm.
 
 A more complete output file will also be saved if the `--full_output` flag is used - see that section of the README for a description. 
  
@@ -147,7 +147,10 @@ If input is a VCF, saves a CSV of the same name containing the intermediate conv
 
 ```
 --full_output
-Saves a full output file to the same location as the output_EM.csv file (with a .pkl suffix). The full output file is a nested dictionary-of-dictionaries containing the following keys, letting `N` be the number of filtered replicates in the dataset:
+Saves a full output file to the same location as the output_EM.csv file (with a .pkl suffix). The full output file is a nested dictionary-of-dictionaries containing the following keys, letting `N_init` and `N` be the number of input and filtered replicates, respectively, in the dataset:
+- `max_samples` (1,) - the maximum number of samples for a single replicate in the dataset.
+- `sample_mask` (N_init,) - a boolean mask, where True indicates that a given replicate is in the final dataset (i.e. has not been filtered out)
+- `sample_idxs (N,) - the indices of the filtered replicates with respect to the rows of the initial dataset.
 - `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
 - `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under neutrality. The second dimension depends on which initial distribution is used for calculation.
 - `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
@@ -273,6 +276,6 @@ For each simulation condition, the following two files are outputted:
 
 Sample calls to `simulate_data.py` for a non-data-matched set of simulations and a data-matched simulation are as follows:
 
-`python simulate_data.py simulations_folder -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
+`python simulate_data.py . -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
 
-`python simulate_data.py data_simulations -s .005 .05 .2 --sel_types neutral add rec --data_matched GB_means.txt GB_missingness.txt GB_sample_sizes.table`
+`python simulate_data.py . -s .005 .05 .2 --sel_types neutral add rec --data_matched sample_datasets/GB_means.txt sample_datasets/GB_missingness.txt sample_datasets/GB_sample_sizes.table`

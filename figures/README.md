@@ -1,6 +1,6 @@
 # Recreating main text figures
 
-This directory contains scripts to recreate the data-derived figures in the main text of Fine and Steinrücken (2024), or generate similar plots for a dataset of your choosing. Both subdirectories assume that you have run `run_emsel.py` on a target dataset in `--full_output` mode.
+This directory contains scripts to recreate the data-derived figures in the main text of Fine and Steinrücken (2024), or generate similar plots for a dataset of your choosing. Step-by-step instructions to generate each plot can be found in the README of each subfolder.
 
 ## simulation subdirectory
 

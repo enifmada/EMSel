@@ -6,7 +6,7 @@ This directory contains scripts to recreate the data-derived figures in the main
 
 The subdirectory [simulation/](simulation/) contains scripts to generate the boxplots, strip plots, AUC plots, Q-Q plots, and confusion matrices found in Sections 3 and 4.2 of the manuscript.
 
-Detailed descriptions on how to run the scripts can be found in the [simulation/](simulation/) subdirectory, but briefly these are:
+Detailed descriptions on how to run the scripts can be found in the subdirectory, but briefly these are:
 - `box_and_strip_plots.py` generates boxplots (e.g. Figure 4A) if `cond_only` is `False` and strip plots (e.g. Figure 6) if `cond_only` is `True`. To generate strip plots, you must first run `deltall_qqs_and_confusiontables.py`, since the Benjamini-Hochberg `classified.pkl` files are a necessary input.
 - `deltall_qqs_and_confusiontables.py` generates `delta_ll` Q-Q plots (e.g Figure 4D) and confusion tables (e.g. Figure 5). If `save_bh` is `True`, this script also outputs `classified.pkl` files which can be read into `box_and_strip_plots.py` to generate strip plots.
 - `qqs_and_aucs.py` generates chi2 Q-Q plots (e.g. Figure 4B) and AUC tables (e.g. Figure 4C). 
@@ -16,7 +16,7 @@ Detailed descriptions on how to run the scripts can be found in the [simulation/
 
 The subdirectory [gb_dataset/](gb_dataset/) contains scripts to generate all plots found in Section 4.3 of the manuscript. These plots _do_ require a VCF as input. 
 
-Detailed descriptions on how to run the scripts can be found in the [gb_dataset/](gb_dataset/) subdirectory, but briefly these are:
+Detailed descriptions on how to run the scripts can be found in the subdirectory, but briefly these are:
 
 **`aggregate_data.py` must be run before the other two scripts**. This script also generates the `sample_means.txt` and `sample_missigness.txt` files needed to run data-matched simulations.
 

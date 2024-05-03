@@ -11,6 +11,20 @@ from scipy.signal import savgol_filter
 import seaborn as sns
 from cycler import cycler
 
+
+###### MODIFY
+sel_strs = [.005, .01, .025, .05]
+num_gens_list = [101, 251, 1001]
+init_dists = [.005, .25, "recip"]
+
+save_gengamma = False
+
+EM_dir = "figures/simulation/EM"
+classified_dir = "figures/simulation/classified"
+output_dir = "figures/simulation/output"
+
+###### DO NOT MODIFY
+
 plt.rcParams.update({'font.size': 9,
                      'text.usetex': False,
                      'font.family': 'serif',
@@ -31,15 +45,13 @@ classification_types_rows = ["Neut.", "Add.", "Dom.", "Rec.", "Over.", "Under.",
 sel_types = ["add", "dom", "rec", "over", "under"]
 sel_types_rows = ["add", "dom", "rec", "over", "under"]
 
-sel_strs = [.005, .01, .025, .05]
-num_gens_list = [101, 251, 1001]
-init_dists = [.005, .25, "recip"]
+
 
 onep_types = ["add", "dom", "rec"]
 update_types = [*onep_types, "full"]
 final_sel_types = ["add", "dom", "rec", "over", "under"]
 
-gengamma_save_path = Path("gengamma_params.pkl")
+gengamma_save_path = Path(f"{output_dir}/gengamma_params.pkl")
 
 p_val = .05
 save_bh = True
@@ -57,7 +69,7 @@ for num_gens in num_gens_list:
 
         neutral_filename = params_dict_to_str(**ndict)
         row_list.append([neutral_filename])
-        neutral_hmm_path = Path(f"{neutral_filename}_EM.pkl")
+        neutral_hmm_path = Path(f"{EM_dir}/{neutral_filename}_EM.pkl")
         with open(neutral_hmm_path, "rb") as file:
             nf = pickle.load(file)
 
@@ -113,9 +125,10 @@ for num_gens in num_gens_list:
         chisq1_sl_fit = chi2(1)
         chisq2_sl_fit = chi2(2)
 
-        gengamma_dict = {"k_opt": k_opt, "lr_shift": lr_shift, "gengamma_fit": gengamma_sl_fit}
-        with open(gengamma_save_path, "wb") as file:
-            pickle.dump(gengamma_dict, file)
+        if save_gengamma:
+            gengamma_dict = {"k_opt": k_opt, "lr_shift": lr_shift, "gengamma_fit": gengamma_sl_fit}
+            with open(gengamma_save_path, "wb") as file:
+                pickle.dump(gengamma_dict, file)
 
         med_p_vals = np.zeros_like(n_lrs)
         med_p_vals[n_lrs > lr_shift] = (1 - gengamma_sl_fit.cdf(n_lrs[n_lrs > lr_shift] - lr_shift)) / 2
@@ -155,17 +168,16 @@ for num_gens in num_gens_list:
         full_excel_array = np.copy(n_full)
         cut_idx = 0
         params_dict_to_str(**{"init_dist": init_dist, "num_gens": num_gens})
-        if save_bh:
-            for s_i, s_array in enumerate(test_vals):
-                for col in np.arange(s_array.shape[1]):
-                    tpath = Path(f"{convert_to_abbrevs(row_list[s_i][col])}_s{str(sel_strs[s_i])[2:]}_g{num_gens}_d{str(init_dist)[2:]}_classified.pkl")
-                    bh_dict = {
-                        "bh_classes": s_array[:, col],
-                        "p_vals": g_p_val_matrix[s_i][:, col],
-                        "p_cutoff": p_cutoff,
-                    }
-                    with open(tpath, "wb") as file:
-                        pickle.dump(bh_dict, file)
+        for s_i, s_array in enumerate(test_vals):
+            for col in np.arange(s_array.shape[1]):
+                tpath = Path(f"{classified_dir}/{convert_to_abbrevs(row_list[s_i][col])}_s{str(sel_strs[s_i])[2:]}_g{num_gens}_d{str(init_dist)[2:]}_classified.pkl")
+                bh_dict = {
+                    "bh_classes": s_array[:, col],
+                    "p_vals": g_p_val_matrix[s_i][:, col],
+                    "p_cutoff": p_cutoff,
+                }
+                with open(tpath, "wb") as file:
+                    pickle.dump(bh_dict, file)
         for s_i, s_array in enumerate(test_vals):
             if sel_strs[s_i] in [0.005, 0.025]:
                 continue
@@ -224,7 +236,7 @@ for num_gens in num_gens_list:
                 Rectangle((diag_pos + 1 + offset, diag_pos + offset), 1 - 2 * offset, 1 - 2 * offset, ec=edge_col,
                           fc='none', lw=lw, alpha=alpha))
         tablename = params_dict_to_str(**{"init_dist": init_dist, "num_gens": num_gens})
-        fig2.savefig(Path(f"{tablename}_confusion_plot.pdf"),format="pdf", bbox_inches="tight")
+        fig2.savefig(Path(f"{output_dir}/{tablename}_confusion_plot.pdf"),format="pdf", bbox_inches="tight")
 
         fig, axs = plt.subplots(1, 1, figsize=(3.1, 3.1), layout="constrained")
         logps = [-np.log10(med_p_vals), -np.log10(full_p_vals_1), -np.log10(full_p_vals_2)]
@@ -233,5 +245,5 @@ for num_gens in num_gens_list:
         axins = axs.inset_axes([.65, .11, .3, .3])
         axs.text(-.2, .97, r"$\bf{D}$", fontsize=13, transform=axs.transAxes)
         plot_qq(axs, axins, logps, labels, colors=colors, legend_loc = "upper left", thin=True)
-        fig.savefig(Path(f"neutral_g{num_gens}_d{init_dist}_dll_all.pdf"), format="pdf", bbox_inches="tight")
+        fig.savefig(Path(f"{output_dir}/neutral_g{num_gens}_d{init_dist}_dll_all.pdf"), format="pdf", bbox_inches="tight")
         plt.close(fig)

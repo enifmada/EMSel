@@ -9,6 +9,17 @@ from pandas import DataFrame
 import seaborn as sns
 from cycler import cycler
 
+
+###### MODIFY
+sel_strs = [.005, .01, .025, .05]
+num_gens_list = [101, 251, 1001]
+init_dists = [.005, .25, "recip"]
+
+EM_dir = "figures/simulation/EM"
+output_dir = "figures/simulation/output"
+
+###### DO NOT MODIFY
+
 plt.rcParams.update({'font.size': 9,
                      'text.usetex': False,
                      'font.family': 'serif',
@@ -28,9 +39,6 @@ plt.rcParams["axes.prop_cycle"] = cycler(color=colorlist)
 classification_types = ["neutral", "add", "dom", "rec", "over", "under", "full"]
 sel_types = ["add", "dom", "rec", "over", "under"]
 sel_types_rows = ["add", "dom", "rec", "over", "under"]
-sel_strs = [.005, .01, .025, .05]
-num_gens_list = [101, 251, 1001]
-init_dists = ["recip", .25, .005]
 
 # subdir_name = "tree/real/fake"
 # num_gens_list = [125]
@@ -52,7 +60,7 @@ for num_gens in num_gens_list:
             ndict["init_dist"] = init_dist
 
             neutral_filename = params_dict_to_str(**ndict)
-            neutral_hmm_path = Path(f"{neutral_filename}_EM.pkl")
+            neutral_hmm_path = Path(f"{EM_dir}/{neutral_filename}_EM.pkl")
             with open(neutral_hmm_path, "rb") as file:
                 nf = pickle.load(file)
 
@@ -80,7 +88,7 @@ for num_gens in num_gens_list:
                 for str_i, sel_str in enumerate(sel_strs):
                     pdict["sel_str"] = sel_str
                     nn_fname = params_dict_to_str(**pdict)
-                    nn_path = Path(f"{nn_fname}_EM.pkl")
+                    nn_path = Path(f"{EM_dir}/{nn_fname}_EM.pkl")
                     if not nn_path.is_file():
                         print(f"{nn_path} not found")
                         sf_llr = np.zeros(nf["neutral_ll"].shape[0])
@@ -101,7 +109,7 @@ for num_gens in num_gens_list:
                 logps.append(full_p_vals)
                 labels.append(convert_from_abbrevs(run_EM_str, shorthet=True))
             plot_qq(axs, axins, logps, labels, legend_loc="upper left", thin=True)
-            fig.savefig(Path(f"neutral_g{num_gens}_d{init_dist}_llr_all.pdf"), format="pdf", bbox_inches="tight")
+            fig.savefig(Path(f"{output_dir}/neutral_g{num_gens}_d{init_dist}_llr_all.pdf"), format="pdf", bbox_inches="tight")
             plt.close(fig)
 
             big_ts_dict = {}
@@ -119,5 +127,5 @@ for num_gens in num_gens_list:
             axs2.set_xlabel(r"$\bf{s}$", fontsize=10)
             axs2.xaxis.set_label_position('top')
             axs2.set_ylabel(r"$\bf{Mode}$", fontsize=10)
-            fig2.savefig(Path(f"{big_ts_str}_auc_plot.pdf"), format="pdf", bbox_inches="tight")
+            fig2.savefig(f"{output_dir}/{big_ts_str}_auc_plot.pdf", format="pdf", bbox_inches="tight")
             plt.close(fig2)

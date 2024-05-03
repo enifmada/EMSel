@@ -8,9 +8,23 @@ import pandas as pd
 from cycler import cycler
 from emsel_util import params_dict_to_str, get_1d_s_data_from_type, convert_from_abbrevs
 
+####### MODIFY
 
-#set to True for strip plots (fig ??)
+sel_strs = [.005, .01, .025, .05]
+num_gens_list = [101, 251, 1001]
+init_dists = [.005, .25, "recip"]
+
+#set to True for strip plots (e.g. Figure 6)
 cond_only = False
+
+data_dir = "figures/simulation/data"
+EM_dir = "figures/simulation/EM"
+output_dir = "figures/simulation/output"
+classified_dir = "figures/simulation/classified"
+
+
+
+####### DO NOT MODIFY
 
 plt.rcParams.update({'font.size': 9,
                      'text.usetex': False,
@@ -29,9 +43,6 @@ plt.rcParams["axes.prop_cycle"] = cycler(color=colorlist)
 
 sel_types = ["neutral", "add", "dom", "rec", "over", "under"]
 cond_types = ["neutral", "add", "dom", "rec"]
-sel_strs = [.005, .01, .025, .05]
-num_gens_list = [101, 251, 1001]
-init_dists = [.005, .25, "recip"]
 
 run_types = ["add", "dom", "rec", "het"]
 iter_types = cond_types if cond_only else sel_types
@@ -68,10 +79,10 @@ for n_i, num_gens in enumerate(num_gens_list):
                 else:
                     continue
 
-            hmm_filename = Path(f"{exp_name}_EM.pkl")
-            pd_filename = Path(f"{exp_name}_data.csv")
-            pdata_filename = Path(f"{exp_name}_pd.pkl")
-            bh_filename = Path(f"{exp_name}_classified.pkl")
+            hmm_filename = Path(f"{EM_dir}/{exp_name}_EM.pkl")
+            pd_filename = Path(f"{data_dir}/{exp_name}_data.csv")
+            pdata_filename = Path(f"{data_dir}/{exp_name}_pd.pkl")
+            bh_filename = Path(f"{classified_dir}/{exp_name}_classified.pkl")
 
             if not pd_filename.is_file():
                 print(f"pd file not found: {pd_filename}")
@@ -205,5 +216,5 @@ for n_i, num_gens in enumerate(num_gens_list):
             axs.text(-.24, 1.01, r"$\bf{A}$", fontsize=13, transform=axs.transAxes)
         axs.legend(loc=legend_loc, fontsize=7, labelspacing=.2, handlelength=1.5, handleheight=.5, handletextpad=.4, borderpad=.2, borderaxespad=.2, markerscale=.25 if cond_only else 1)
         axs.set_ylim([min_quantile, max_quantile])
-        plt.savefig(f"boxplots.pdf", format="pdf", bbox_inches="tight")
+        plt.savefig(f"{output_dir}/g{num_gens}_d{init_dist}_{'strip' if cond_only else 'box'}plots.pdf", format="pdf", bbox_inches="tight")
         plt.close(fig)

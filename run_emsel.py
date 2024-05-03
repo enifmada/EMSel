@@ -45,7 +45,7 @@ parser.add_argument("--save_csv", action="store_true", help="if inputting a VCF,
 parser.add_argument("--info_file", type=argparse.FileType("rb"), help="sample times file (if input = VCF)")
 parser.add_argument("--info_cols", type=str, nargs=2, default=["Genetic_ID","Date_mean"], help="names of the ID and dates columns in the sample times file (if input = VCF)")
 parser.add_argument("--full_output", action="store_true", help="save a pickle file with a full set of outputs (in addition to the CSV)")
-
+parser.add_argument("--force", type=str, nargs=1, help="if the VCF file only contains homozygous loci, force it to be read as either haploid or diploid")
 args = parser.parse_args()
 
 
@@ -104,7 +104,7 @@ elif pd_path.suffix == ".vcf":
     vcf_dates = read_csv(args.info_file.name, usecols=args.info_cols, sep="\t").to_numpy()
     if args.time_after_zero:
         vcf_dates[:, 1] = np.max(vcf_dates[:, 1]) - vcf_dates[:, 1]
-    full_array = vcf_to_useful_format(vcf_file, vcf_dates, years_per_gen = hmm_dd["ytg"])
+    full_array = vcf_to_useful_format(vcf_file, vcf_dates, years_per_gen = hmm_dd["ytg"], force=args.force)
     hmm_data["final_data"] = full_array[:, 2::3].astype(int)
     hmm_data["num_samples"] = full_array[:, 1::3].astype(int)
     hmm_data["sample_times"] = full_array[:, ::3].astype(int)
@@ -129,9 +129,12 @@ hmm_data["final_data"] = hmm_data["final_data"][combo_mask, :]
 hmm_data["num_samples"] = hmm_data["num_samples"][combo_mask, :]
 hmm_data["sample_times"] = hmm_data["sample_times"][combo_mask, :]
 hmm_dd["max_samples"] = max_samples
+hmm_dd["samples_mask"] = combo_mask
+hmm_dd["samples_idxs"] = np.where(combo_mask)[0]
 
 if pd_path.suffix == ".vcf" and args.save_csv:
-    np.savetxt(pd_path.with_suffix(".csv"), full_array[combo_mask, :], delimiter="\t", fmt="%d")
+    np.savetxt(pd_path.with_suffix(".csv"), full_array[combo_mask, :], delimiter="\t", fmt="%d",
+               header="Each row = one replicate; each set of three columns = (sampling time, total samples, derived alleles)")
 
 if pd_path.suffix == ".vcf" and args.full_output:
     hmm_dd["pos"] = vcf_file["variants/POS"][combo_mask]

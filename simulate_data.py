@@ -7,7 +7,9 @@ from itertools import product as itprod
 import bz2
 import argparse
 
-
+Ne_default = 10000
+ns_default = 50
+st_default = 11
 def float_or_str(val):
     try:
         return float(val)
@@ -20,9 +22,9 @@ parser.add_argument("-s", "--sel_coeffs", nargs="+", type=float, default=[.005, 
 parser.add_argument("--sel_types", nargs="+", type=str, default=["neutral", "add", "dom", "rec", "over", "under"], help="types of selection to simulate. valid types are 'neutral', 'add', 'dom', 'rec', 'over', 'under', for now.")
 parser.add_argument("-g", "--num_gens", nargs="+", type=int, default=[101, 251, 1001], help="number of generations to simulate")
 parser.add_argument("-ic", "--init_conds", nargs="+", type=float_or_str, default=[.005, .25, "recip"], help="initial conditions to simulate")
-parser.add_argument("-ns", "--num_samples", type=int, default=50, help="number of samples to draw at each sampling timepoint")
-parser.add_argument("-st", "--sampling_times", type=int, default=11, help="number of times to draw samples")
-parser.add_argument("-Ne", type=int, default=10000, help="effective population size")
+parser.add_argument("-ns", "--num_samples", type=int, default=ns_default, help="number of samples to draw at each sampling timepoint")
+parser.add_argument("-st", "--sampling_times", type=int, default=st_default, help="number of times to draw samples")
+parser.add_argument("-Ne", type=int, default=Ne_default, help="effective population size")
 parser.add_argument("--data_matched", type=str, nargs=3, default=["", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
 parser.add_argument("--seed", type=int, default=5, help="seed")
 parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
@@ -79,6 +81,13 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
     pdict["num_gens"] = num_gens
     if sel_type != "neutral":
         pdict["sel_str"] = sel_str
+    if args.data_matched[0] == "":
+        if pd["Ne"] != Ne_default or 'param_variation' in args.output_directory.name:
+            pdict["Ne"] = pd["Ne"]
+        if pd["num_samples"] != ns_default or 'param_variation' in args.output_directory.name:
+            pdict["num_samples"] = pd["num_samples"]
+        if pd["sample_times"] != st_default or 'param_variation' in args.output_directory.name:
+            pdict["sample_times"] = pd["sample_times"]
     pdict["init_dist"] = init_dist
 
     exp_name = params_dict_to_str(**pdict)
@@ -135,7 +144,8 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
         del pd["real_data_file"]
     with bz2.BZ2File(params_filename, "wb") as file:
         pickle.dump(pd, file)
-    np.savetxt(data_filename, data_csv, delimiter="\t", fmt="%d")
+    np.savetxt(data_filename, data_csv, delimiter="\t", fmt="%d",
+               header="Each row = one replicate; each set of three columns = (sampling time, total samples, derived alleles)")
 with open(args_save_path, "wb") as file:
     pickle.dump(args_dict, file)
 

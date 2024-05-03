@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from matplotlib.ticker import StrMethodFormatter
 from numba import njit
 from scipy.stats import chi2, beta
@@ -275,8 +276,8 @@ def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", th
     axins.get_xaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
     axins.get_yaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))
     #axs.set_yticks(np.arange(max_y*1.05))
-    axs.set_yticks(axs.get_yticks()[1:])
-    axs.get_xticklabels()[0].set_horizontalalignment("right")
+    #a#xs.set_yticks(axs.get_yticks()[1:])
+    #axs.get_xticklabels()[0].set_horizontalalignment("right")
     axins.set_xticks([0, 0.5, 1])
     axins.set_yticks([0, 0.5, 1])
     axins.set_yticks(axins.get_yticks()[1:])
@@ -317,7 +318,7 @@ def classify_full_run(s_table):
     summed_array = [np.sum(classified_array == i) for i in np.arange(4)]
     return classified_array, summed_array
 
-def vcf_to_useful_format(vcf_file, sample_times_file, years_per_gen=28.1):
+def vcf_to_useful_format(vcf_file, sample_times_file, years_per_gen=28.1, force=None):
     sample_times_ordered = np.copy(sample_times_file)
     sample_times_ordered[:, 1] //= years_per_gen
     max_sample_time = np.max(sample_times_ordered[:, 1])
@@ -330,6 +331,11 @@ def vcf_to_useful_format(vcf_file, sample_times_file, years_per_gen=28.1):
 
     #if we're doing genome-wide thresholds?
     diploid_tf = np.any(vcf_file["calldata/GT"][:, :, 1] >= 0, axis=0)
+    if np.all(vcf_file["calldata/GT"][:, :, 0] == vcf_file["calldata/GT"][:, :, 1]):
+        if not force or force not in ["haploid", "diploid"]:
+            raise TypeError("VCF call data is all homozygotes - must use --force [haploid/diploid]!")
+        elif force == "haploid":
+            vcf_file["calldata/GT"][:, :, 1] = -1
     big_final_table = np.zeros((1, sample_times.shape[0]*3))
     for chrom in np.unique(chroms):
         print(chrom)
@@ -636,8 +642,10 @@ def save_csv_output(hmm_dict, hmm_path):
     num_reps = hmm_dict["neutral_ll"].shape[0]
     info_array = np.zeros((num_reps, 3*len(hmm_dict["update_types"])), dtype=float)
     info_array[:, 0] = hmm_dict["neutral_ll"]
+    cols = ["index", "neutral_ll"]
     for ud_i, ud_type in enumerate(hmm_dict["update_types"][1:], start=1):
         info_array[:, 3*ud_i] = hmm_dict[f"{ud_type}_run"]["ll_final"]
         info_array[:, 3*ud_i+1:3*ud_i+3] = hmm_dict[f"{ud_type}_run"]["s_final"].T
-    header = f"each row = (ll, s_1, s_2) for the following update types: {hmm_dict['update_types']}"
-    np.savetxt(hmm_path.with_suffix(".csv"), info_array, header=header)
+        cols.extend([f"{ud_type}_ll", f"{ud_type}_s1", f"{ud_type}_s2"])
+    info_df = pd.DataFrame(info_array, index = hmm_dict["sample_idxs"], columns=cols)
+    info_df.to_csv(hmm_path)

@@ -25,7 +25,6 @@ EM_dir = "figures/simulation/EM"
 classified_dir = "figures/simulation/classified"
 output_dir = "figures/simulation/output"
 ```
-in the commented portion at the top of the script.
 
 ### Figures 4B+C, S.1-8B+C:
 Set the following parameters at the beginning of the script `qqs_and_aucs.py` and run it using `python qqs_and_aucs.py`:
@@ -37,7 +36,6 @@ init_dists = [.005, .25, "recip"]
 EM_dir = "figures/simulation/EM"
 output_dir = "figures/simulation/output"
 ```
-in the commented portion at the top of the script.
 
 ### Figures 4D, 5, S.1-8D:
 Set the following parameters at the beginning of the script `deltall_qqs_and_confusiontables.py` and run it using `python deltall_qqs_and_confusiontables.py`:
@@ -52,13 +50,12 @@ EM_dir = "figures/simulation/EM"
 classified_dir = "figures/simulation/classified"
 output_dir = "figures/simulation/output"
 ```
-in the commented portion at the top of the script.
 
 ### Figure 6:
 Set the parameter `cond_only = True` at the beginning of the script `box_and_strip_plots.py` and leave the rest of the configuration the same as Figures 4A et al. above. Run it using `python box_and_strip_plots.py`. Note that this will only run successfully after `deltall_qqs_and_confusiontables.py` has been run, since the `_classified.pkl` files must be generated.
 
 ### Figure 8:
-Run `python mismatched_analysis.py`. Modify the directory paths in the cript if needed.
+Run `python mismatched_analysis.py`. Modify the directory paths in the script if needed.
 
 ### Figures S.9-10:
 First, for every file in `figures/simulation/data` that contains `g251_d25`, run `python run_emsel.py figures/simulation/data/{file_name}_g251_d25.csv figures/simulation/EM/{file_name}_g251_d25_Ne5000_EM time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 5000` and `python run_emsel.py figures/simulation/data/{file_name}_g251_d25.csv figures/simulation/EM/{file_name}_g251_d25_Ne20000_EM time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 20000` to reanalyze the 251 generations, init freq = 0.25 data under the 'incorrect' Nes.
@@ -75,7 +72,6 @@ output_dir = "figures/simulation/output"
 
 file_strs = ["Ne5000_", "", "Ne20000_"]
 ```
-in the commented portion at the top of the script.
 
 To generate Figure S.10, run `python Ne_misspec_qqs.py`. Modify the directory paths in the script if needed.
 
@@ -94,9 +90,9 @@ This figure requires additional simulations. Proceed via the following:
 7. Run `python param_variation_plots.py`.
 
 ## Figures 9-11:
-First, run the pipeline in the `gb_dataset` subfolder up to the point where the `GB_means.txt` and `GB_missingness.txt` files are created (Step X), then copy these two files and the `GB_v54.1_capture_only_inds.table` file into `figures/simulation/data`.
+First, run the pipeline in the `gb_dataset` subfolder up to the point where the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files are created (i.e. run the "All figures" section), then copy these two files and the `GB_v54.1_capture_only_inds.table` file into `figures/simulation/data`.
 
-Next, run `python simulate_data.py figures/simulation/data -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched figures/simulation/data/GB_means.txt figures/simulation/data/GB_missingness.txt figures/simulation/data/GB_sample_sizes.table`. This should generate 21 files, each with "g125_dal_special" somewhere in their name.
+Next, run `python simulate_data.py figures/simulation/data -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched figures/simulation/data/GB_v54.1_capture_only_means.txt figures/simulation/data/GB_v54.1_capture_only_missingness.txt figures/simulation/data/GB_sample_sizes.table`. This should generate 21 files, each with "g125_dal_special" somewhere in their name.
 
 Next, for each file created, run `python run_emsel.py figures/simulation/data/{file_name}.csv figures/simulation/EM/{file_name}_EM time_after_zero -maf 0 --min_sample_density 0 --full_output`.
 
@@ -116,7 +112,6 @@ EM_dir = "figures/simulation/EM"
 classified_dir = "figures/simulation/classified"
 output_dir = "figures/simulation/output"
 ```
-in the commented portion at the top of the script.
 
 ### Figure 9B+C:
 Set the following parameters at the beginning of the script `qqs_and_aucs.py` and run it using `python qqs_and_aucs.py`:
@@ -128,7 +123,6 @@ init_dists = ["real_special"]
 EM_dir = "figures/simulation/EM"
 output_dir = "figures/simulation/output"
 ```
-in the commented portion at the top of the script.
 
 ### Figure 9D+10:
 Set the following parameters at the beginning of the script `deltall_qqs_and_confusiontables.py` and run it using `python deltall_qqs_and_confusiontables.py`:
@@ -143,7 +137,7 @@ EM_dir = "figures/simulation/EM"
 classified_dir = "figures/simulation/classified"
 output_dir = "figures/simulation/output"
 ```
-in the commented portion at the top of the script. Note the `save_gengamma = True`.
+Note the `save_gengamma = True`.
 
 ### Figure 11:
 Run `python box_and_strip_plots.py` with the same configuration as Figure 9A, but with `cond_only = True`.

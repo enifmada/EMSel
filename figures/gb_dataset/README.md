@@ -7,7 +7,7 @@ The scripts in this directory recreate Figures 12-14 of the main text and S.12-S
 Each figure and table from this section of the manuscript and Supplementary Material requires a full analysis of the GB dataset described in Section 4.1 of the main text. To do so, proceed via the following:
 
 1. Create the folders `figures/gb_dataset/data`, `figures/gb_dataset/EM` and `figures/gb_dataset/output`.
-2. Follow all instructions in the extract_vcfs subfolder. You should now have 48 .vcf files, as well as several additional .table files, in the extract_vcfs/extracted subfolder. In addition, step 4 of this process will have created Figures S.12-S.13.
+2. Follow all instructions in the [extract_vcfs/](extract_vcfs/) subfolder. You should now have 48 .vcf files, as well as several additional .table files, in the extract_vcfs/extracted subfolder. In addition, step 4 of this process will have created Figures S.12-S.13.
 3. Move the contents of the `extract_vcfs/extracted` subfolder to the `data` subfolder created in step 1.
 4. For each created VCF whose filename contains `capture_only`, run EMSel via the command `python run_emsel.py figures/gb_dataset/data/{file_name}.vcf figures/gb_dataset/EM/GB_v54.1_capture_only_c{chr}_EM time_before_present --info_file figures/gb_dataset/data/GB_v54.1_capture_only_inds.table --info_cols Genetic_ID Date_mean -ytg 28.1 --save_csv --full_output`. Due to the size of the VCFs, this step is quite computationally expensive - we recommend running this in parallel on a cluster (using the -nc flag) and splitting the runs by selection mode. The scripts `SLURM_example.py` and `combine_split_runs.py` provide a template for submitting scripts that are parallelized and split by selection mode to a cluster and combining the results into a single file afterwards, respectively. Step 4 assumes that you have 22 files in `figures/gb_dataset/EM` that are named `GB_v54.1_capture_only_c{chr}_EM.pkl` for chr = (1,2,...,22).
 5. Set the following parameters at the beginning of the script `aggregate_data.py` and run it using `python aggregate_data.py`:
@@ -46,8 +46,8 @@ classification_types = ["add", "dom", "rec", "het"]
 ## Figure 14
 
 To generate this figure, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, either:
-1. Run the scripts in the "Figures 9-11" section of the figures/simulation folder (everything before the "Figure 9A" header), followed by the `deltall_qqs_and_confusiontables.py` script as detailed in the "Figure 9D+10" section.
-2. Move the provided `gengamma_params.pkl` file from the sample_datasets folder into `figures/gb_dataset/data`.
+1. Run the scripts in the "Figures 9-11" section of the [figures/simulation](../simulation) folder (everything before the "Figure 9A" header), followed by the `deltall_qqs_and_confusiontables.py` script as detailed in the "Figure 9D+10" section.
+2. Move the provided `gengamma_params.pkl` file from the [sample_datasets](../../sample_datasets) folder into `figures/gb_dataset/data`.
 
 Then, set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:
 ```

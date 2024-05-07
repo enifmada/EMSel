@@ -1,6 +1,5 @@
 import numpy as np
 import pickle
-import bz2
 import matplotlib.pyplot as plt
 from pathlib import Path
 from emsel_util import params_dict_to_str, convert_from_abbrevs
@@ -64,11 +63,11 @@ for v_i, var_list in enumerate(parameter_lists):
             hmm_name_dict = deepcopy(fname_dict)
             hmm_name_dict["sel_type"] = sel_type
             hmm_name = params_dict_to_str(**hmm_name_dict)
-            hmm_filename = Path(f"{EM_dir}/{hmm_name}_EM.bz2")
+            hmm_filename = Path(f"{EM_dir}/{hmm_name}_EM.pkl")
             if not hmm_filename.is_file():
                 print(f"no file: {hmm_filename}")
                 continue
-            with bz2.BZ2File(hmm_filename, "rb") as file:
+            with open(hmm_filename, "rb") as file:
                 hf = pickle.load(file)
 
             plot_val = np.median(hf[f"{sel_type}_run"]["s_final"][1, :])

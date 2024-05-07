@@ -46,6 +46,7 @@ parser.add_argument("--info_file", type=argparse.FileType("rb"), help="sample ti
 parser.add_argument("--info_cols", type=str, nargs=2, default=["Genetic_ID","Date_mean"], help="names of the ID and dates columns in the sample times file (if input = VCF)")
 parser.add_argument("--full_output", action="store_true", help="save a pickle file with a full set of outputs (in addition to the CSV)")
 parser.add_argument("--force", type=str, nargs=1, help="if the VCF file only contains homozygous loci, force it to be read as either haploid or diploid")
+parser.add_argument("--no_neutral", action="store_true", help="override the requirement that neutral be run")
 args = parser.parse_args()
 
 
@@ -150,7 +151,7 @@ if hmm_dd["selection_modes"] == "all" or hmm_dd["selection_modes"] == ["all"]:
 else:
     if len([update_i for update_i in hmm_dd["selection_modes"] if update_i not in all_update_types]) > 0:
         raise ValueError("Invalid update type specified!")
-    if "neutral" not in hmm_dd["selection_modes"]:
+    if "neutral" not in hmm_dd["selection_modes"] and not args.no_neutral:
         hmm_dd["selection_modes"] = ["neutral", *hmm_dd["selection_modes"]]
     update_types = hmm_dd["selection_modes"]
 for update_i, update_type in enumerate(update_types):

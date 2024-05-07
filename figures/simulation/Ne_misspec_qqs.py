@@ -32,7 +32,7 @@ logps = []
 labels = []
 
 for Ne_i, Ne_name in enumerate(Ne_names):
-    neutral_path = Path(f"{EM_dir}/neutral_g251_d25_{Ne_name}EM.bz2")
+    neutral_path = Path(f"{EM_dir}/neutral_g251_d25_{Ne_name}EM.pkl")
     with open(neutral_path, "rb") as file:
         nf = pickle.load(file)
 

@@ -4,15 +4,26 @@ import pickle
 from scipy.stats import chi2
 from emsel_util import bh_correct, get_1d_s_data_from_type
 
+###### MODIFY
+
+data_dir = "figures/gb_dataset/data"
+EM_dir = "figures/gb_dataset/EM"
+output_dir = "figures/gb_dataset/output"
+genodata_type = "capture_only"
+
+###### DO NOT MODIFY
 chroms = range(1,23)
 classification_types = ["add", "dom", "het", "rec"]
 alpha = .05
 
 all_s = {}
 all_p = {}
+all_ll = {}
 for c_type in classification_types:
     all_p[f"{c_type}_p"] = np.array([0])
     all_s[f"{c_type}_s"] = np.array([0])
+    all_ll[f"{c_type}_ll"] = np.array([0])
+all_ll["neutral_ll"] = np.array([0])
 all_loc = {}
 all_maf = {}
 all_loc["chr_1_idx_offset"] = 0
@@ -33,13 +44,13 @@ start_pos = 0
 num_bins = 5
 superfinal_binned_data = np.zeros((1, num_bins * 3))
 
-binned_path = Path("data_binned.csv")
-complete_agg_data_path = Path("agg_data.pkl")
-means_path = Path("sample_means.txt")
-missingness_path = Path("sample_missingness.txt")
+binned_path = Path(f"{data_dir}/GB_v54.1_{genodata_type}_complete_data_binned.csv")
+complete_agg_data_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_agg_data.pkl")
+means_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_means.txt")
+missingness_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_missingness.txt")
 for chrom in chroms:
     agg_data = {}
-    base_data_path = Path(f"input_data_{chrom}")
+    base_data_path = Path(f"{data_dir}/GB_v54.1_{genodata_type}_c{chrom}")
     df = np.loadtxt(base_data_path.with_suffix(".csv"), delimiter="\t")
     final_data = df[:, 2::3].astype(int)
     num_samples = df[:, 1::3].astype(int)
@@ -47,7 +58,7 @@ for chrom in chroms:
     print(np.max(sample_times))
 
     #aggregating various things
-    em_path = Path("EM_path.pkl")
+    em_path = Path(f"{EM_dir}/GB_v54.1_{genodata_type}_c{chrom}_EM.pkl")
     with open(em_path, "rb") as file:
         hf = pickle.load(file)
     init_mean = hf["add_run"]["ic_dist"][0, :]/(hf["add_run"]["ic_dist"][0, :]+hf["add_run"]["ic_dist"][1, :])
@@ -63,12 +74,14 @@ for chrom in chroms:
     agg_data["a_miss"] = a_ns / hf["max_samples"]
     agg_data["ref_allele"] = hf["ref_allele"]
     agg_data["alt_allele"] = hf["alt_allele"]
+    agg_data["neutral_ll"] = neutral_ll
     for classification_type in classification_types:
         run_ll = hf[f"{classification_type}_run"]["ll_final"]
         llr_real = 2 * (run_ll - neutral_ll)
         llr = np.copy(llr_real)
         llr[llr <= 0] = 1e-12
         p_vals = -chi2(1).logsf(llr)/np.log(10)
+        agg_data[f"{classification_type}_ll_vals"] = llr
         agg_data[f"{classification_type}_p_vals"] = p_vals
         agg_data[f"{classification_type}_itercount"] = hf[f"{classification_type}_run"]["itercount_hist"]
         agg_data[f"{classification_type}_s_vals"] = get_1d_s_data_from_type(hf[f"{classification_type}_run"]["s_final"], classification_type)
@@ -78,6 +91,8 @@ for chrom in chroms:
         all_p[f"{c_type}_p"] = np.concatenate((all_p[f"{c_type}_p"], agg_data[f"{c_type}_p_vals"]))
         all_s[f"{c_type}_s"] = np.concatenate(
             (all_s[f"{c_type}_s"], agg_data[f"{c_type}_s_vals"]))
+        all_ll[f"{c_type}_ll"] = np.concatenate(
+            (all_ll[f"{c_type}_ll"], agg_data[f"{c_type}_ll_vals"]))
         if c_type == classification_types[0]:
             all_loc_all_chrom = np.concatenate((all_loc_all_chrom, agg_data["pos"].astype(np.int64)+start_pos))
             all_loc_per_chrom = np.concatenate((all_loc_per_chrom, agg_data["pos"]))
@@ -91,6 +106,7 @@ for chrom in chroms:
             all_chrom = np.concatenate((all_chrom, np.zeros_like(agg_data["pos"])+chrom))
             all_ref_allele = np.concatenate((all_ref_allele, agg_data["ref_allele"]))
             all_alt_allele = np.concatenate((all_alt_allele, agg_data["alt_allele"]))
+            all_ll["neutral_ll"] = np.concatenate((all_ll["neutral_ll"], agg_data["neutral_ll"]))
             if chrom == 1:
                 all_rsid = all_rsid[1:]
                 all_chrom = all_chrom[1:]
@@ -100,11 +116,13 @@ for chrom in chroms:
                 all_means = all_means[1:]
                 all_ref_allele = all_ref_allele[1:]
                 all_alt_allele = all_alt_allele[1:]
+                all_ll["neutral_ll"] = all_ll["neutral_ll"][1:]
                 MAF_THRESH = hf["maf_thresh"]
                 MISSING_THRESH = hf["min_sample_density"]
         if chrom == 1:
             all_p[f"{c_type}_p"] = all_p[f"{c_type}_p"][1:]
             all_s[f"{c_type}_s"] = all_s[f"{c_type}_s"][1:]
+            all_ll[f"{c_type}_ll"] = all_ll[f"{c_type}_ll"][1:]
 
 
     #binning the data for trajectories
@@ -140,12 +158,13 @@ for classification_type in classification_types:
     data_to_save["p"] = all_p[f"{classification_type}_p"][bh_locs]
     data_to_save["p_bh"] = p_bh
 
-    with open(Path(f"{classification_type}_bh.pkl"), "wb") as file:
+    with open(Path(f"{output_dir}/GB_v54.1_{genodata_type}_{classification_type}_bh.pkl"), "wb") as file:
         pickle.dump(data_to_save, file)
 
 cdata = {}
 cdata["all_p"] = all_p
 cdata["all_s"] = all_s
+cdata["all_ll"] = all_ll
 cdata["all_loc_all_chrom"] = all_loc_all_chrom
 cdata["all_loc_per_chrom"] = all_loc_per_chrom
 cdata["all_chrom"] = all_chrom

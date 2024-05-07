@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import pickle
-from bz2 import BZ2File
 from emsel_util import params_dict_to_str, bh_correct, get_roc_and_auc, convert_from_abbrevs, plot_qq
 from copy import deepcopy
 from scipy.stats import chi2, gengamma
@@ -53,13 +52,13 @@ ndict["num_gens"] = num_gens
 ndict["init_dist"] = init_dist
 
 neutral_filename = params_dict_to_str(**ndict)
-neutral_hmm_path = Path(f"{EM_dir}/{neutral_filename}_EM.bz2")
-with BZ2File(neutral_hmm_path) as file:
+neutral_hmm_path = Path(f"{EM_dir}/{neutral_filename}_EM.pkl")
+with open(neutral_hmm_path) as file:
     nf = pickle.load(file)
 
 neutral_ll = nf["neutral_ll"]
 add_em_fig, add_em_axs = plt.subplots(1,1,figsize=(3.1,3.1), layout="constrained")
-add_em_axs.text(-.2, .97, "A", fontsize=13, transform=add_em_axs.transAxes)
+add_em_axs.text(-.2, .97, r"$\bf{A}$", fontsize=13, transform=add_em_axs.transAxes)
 #fig, axs = plt.subplots(1, 2, figsize=(16, 8), layout="constrained")
 chi2_lr_space = np.linspace(0, 20, 500)
 
@@ -86,12 +85,12 @@ for type_i, run_type in enumerate(sel_types):
     for str_i, sel_str in enumerate(sel_strs):
         pdict["sel_str"] = sel_str
         nn_fname = params_dict_to_str(**pdict)
-        nn_path = Path(f"{EM_dir}/{nn_fname}_EM.bz2")
+        nn_path = Path(f"{EM_dir}/{nn_fname}_EM.pkl")
         if not nn_path.is_file():
             print(f"{nn_path} not found")
             sf_llr = np.zeros(nf["neutral_ll"].shape[0])
         else:
-            with BZ2File(nn_path) as file:
+            with open(nn_path) as file:
                 sf = pickle.load(file)
             sf_run_ll = sf[f"add_run"]["ll_final"]
             sf_llr = 2*(sf_run_ll-sf["neutral_ll"])
@@ -128,7 +127,7 @@ plt.close(add_em_auc_fig)
 
 auc_df = np.zeros((len(sel_types), len(sel_strs)))
 add_sim_fig, add_sim_axs = plt.subplots(1,1,figsize=(3.1,3.1), layout="constrained")
-add_sim_axs.text(-.58, 1.1, "A", fontsize=13, transform=add_sim_axs.transAxes)
+add_sim_axs.text(-.58, 1.1, r"$\bf{B}$", fontsize=13, transform=add_sim_axs.transAxes)
 chi2_lr_space = np.linspace(0, 20, 500)
 
 add_sim_axins = add_sim_axs.inset_axes([.65, .11, .3, .3])
@@ -162,12 +161,12 @@ for type_i, run_type in enumerate(sel_types):
     for str_i, sel_str in enumerate(sel_strs):
         pdict["sel_str"] = sel_str
         nn_fname = params_dict_to_str(**pdict)
-        nn_path = Path(f"{EM_dir}/{nn_fname}_EM.bz2")
+        nn_path = Path(f"{EM_dir}/{nn_fname}_EM.pkl")
         if not nn_path.is_file():
             print(f"{nn_path} not found")
             sf_llr = np.zeros(nf["neutral_ll"].shape[0])
         else:
-            with BZ2File(nn_path) as file:
+            with open(nn_path) as file:
                 sf = pickle.load(file)
             sf_run_ll = sf[f"{run_EM_str}_run"]["ll_final"]
             sf_llr = 2*(sf_run_ll-sf["neutral_ll"])

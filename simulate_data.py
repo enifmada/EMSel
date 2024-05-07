@@ -4,7 +4,6 @@ import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
 from itertools import product as itprod
-import bz2
 import argparse
 
 Ne_default = 10000
@@ -91,7 +90,7 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
     pdict["init_dist"] = init_dist
 
     exp_name = params_dict_to_str(**pdict)
-    params_filename = Path(f"{args.output_directory}/{exp_name}_{args.suffix}pd.bz2")
+    params_filename = Path(f"{args.output_directory}/{exp_name}_{args.suffix}pd.pkl")
     data_filename = Path(f"{args.output_directory}/{exp_name}_{args.suffix}data.csv")
 
     s1, s2 = get_sel_coeffs_from_type(sel_type, sel_str)
@@ -142,7 +141,7 @@ for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_d
     data_csv[:, 2::3] = data_dict["obs_counts"]
     if args.data_matched[0] != "":
         del pd["real_data_file"]
-    with bz2.BZ2File(params_filename, "wb") as file:
+    with open(params_filename, "wb") as file:
         pickle.dump(pd, file)
     np.savetxt(data_filename, data_csv, delimiter="\t", fmt="%d",
                header="Each row = one replicate; each set of three columns = (sampling time, total samples, derived alleles)")

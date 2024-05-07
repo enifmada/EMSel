@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import pickle
-from bz2 import BZ2File
 from emsel_util import average_p_vals, params_dict_to_str, plot_qq
 from scipy.stats import chi2
 
@@ -44,8 +43,8 @@ axins = axs.inset_axes([.67, .11, .28, .28])
 logps = []
 labels = []
 for perm_i in range(100):
-    neutral_hmm_path = Path(f"{EM_dir}/{neutral_filename}_perm{perm_i}_EM.bz2")
-    with BZ2File(neutral_hmm_path) as file:
+    neutral_hmm_path = Path(f"{EM_dir}/{neutral_filename}_perm{perm_i}_EM.pkl")
+    with open(neutral_hmm_path) as file:
         nf = pickle.load(file)
     neutral_ll = nf["neutral_ll"]
     run_ll = nf[f"add_run"]["ll_final"]
@@ -55,8 +54,8 @@ for perm_i in range(100):
     logps.append(full_p_vals)
     labels.append("")
 
-true_neutral_path = Path(f"{EM_dir}/{neutral_filename}_EM.bz2")
-with BZ2File(true_neutral_path) as file:
+true_neutral_path = Path(f"{EM_dir}/{neutral_filename}_EM.pkl")
+with open(true_neutral_path) as file:
     nf = pickle.load(file)
 neutral_ll = nf["neutral_ll"]
 run_ll = nf[f"add_run"]["ll_final"]

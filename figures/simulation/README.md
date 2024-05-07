@@ -90,7 +90,7 @@ This figure requires additional simulations. Proceed via the following:
 7. Run `python param_variation_plots.py`.
 
 ## Figures 9-11:
-First, run the pipeline in the `gb_dataset` subfolder up to the point where the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files are created (i.e. run the "All figures" section), then copy these two files and the `GB_v54.1_capture_only_inds.table` file into `figures/simulation/data`.
+First, run the pipeline in the [figures/gb_dataset/](../gb_dataset/) folder up to the point where the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files are created (i.e. run the "All figures" section), then copy these two files and the `GB_v54.1_capture_only_inds.table` file into `figures/simulation/data`.
 
 Next, run `python simulate_data.py figures/simulation/data -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched figures/simulation/data/GB_v54.1_capture_only_means.txt figures/simulation/data/GB_v54.1_capture_only_missingness.txt figures/simulation/data/GB_sample_sizes.table`. This should generate 21 files, each with "g125_dal_special" somewhere in their name.
 

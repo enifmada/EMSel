@@ -109,6 +109,9 @@ for n_i, num_gens in enumerate(num_gens_list):
                     bf = pickle.load(file)
                 idx_list = np.where(bf["bh_classes"] == sel_types.index(sel_type))[0]
                 num_pts = idx_list.shape[0]
+            elif init_dist == "real_special":
+                num_pts = 500
+                idx_list = np.arange(num_pts)
             else:
                 idx_list = np.arange(num_pts)
             if sel_type == "neutral":

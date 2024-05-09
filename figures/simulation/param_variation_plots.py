@@ -1,10 +1,11 @@
-import numpy as np
 import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
 from emsel_util import params_dict_to_str, convert_from_abbrevs
 from cycler import cycler
 from copy import deepcopy
+import pandas as pd
+import seaborn as sns
 
 ###### MODIFY
 
@@ -49,8 +50,7 @@ knee_sci_ticks = [f"{knees[i]:.0e}" for i in range(len(knees))]
 
 fig, axs = plt.subplots(2, 2, figsize=(6,6), layout="constrained")
 for v_i, var_list in enumerate(parameter_lists):
-    data_array = np.zeros((len(onep_sel_types), len(var_list)))
-    ci_array = np.zeros((len(onep_sel_types), len(var_list), 2))
+    df_dict = {"s_vals": [], "s_types": [], "var_vals": []}
     v_internal = 0
     for var in var_list:
         fname_dict = {}
@@ -70,25 +70,26 @@ for v_i, var_list in enumerate(parameter_lists):
             with open(hmm_filename, "rb") as file:
                 hf = pickle.load(file)
 
-            plot_val = np.median(hf[f"{sel_type}_run"]["s_final"][1, :])
-            cis = np.quantile(hf[f"{sel_type}_run"]["s_final"][1, :], [.025, .975])
-            data_array[sel_i, v_internal] = plot_val
-            ci_array[sel_i, v_internal, :] = cis
+            s_vals = hf[f"{sel_type}_run"]["s_final"][1, :]
+            df_dict["s_vals"].extend(s_vals.tolist())
+            df_dict["s_types"].extend([convert_from_abbrevs(f"{sel_type}", shortall=True)] * s_vals.shape[0])
+            df_dict["var_vals"].extend([var] * s_vals.shape[0])
         v_internal += 1
-    for line_i in np.arange(data_array.shape[0]):
-        if v_i == 2:
-            factor = (1+2.5*(line_i-1)/10)
-        else:
-            factor = (1+(line_i-1)/10)
-        axs[v_i//2, v_i%2].errorbar(np.array(var_list)*factor, data_array[line_i, :], yerr=ci_array[line_i, :, 1] - data_array[line_i, :], label=f"{long_sel_names[line_i]}", marker="o", ms=5, capsize=2.5, elinewidth=1.5)
+    df = pd.DataFrame(df_dict)
+    sns.boxplot(df, x="var_vals", y="s_vals", hue="s_types", dodge=True, ax=axs[v_i//2, v_i%2], native_scale=True,
+                log_scale=(True, False), width=.75,
+                fliersize=1, boxprops={"lw": .5}, medianprops={"lw": .5}, whiskerprops={"lw": .5}, capprops={"lw": .5},
+                flierprops={"alpha": .7}, whis=(2.5, 97.5))
     if not v_i%2:
         axs[v_i//2, v_i%2].set_ylabel(r"$\hat{s}$")
-    axs[v_i//2, v_i%2].set_xscale("log")
+    else:
+        axs[v_i//2, v_i%2].set_ylabel("")
     axs[v_i//2, v_i%2].text(-.2, .97, rf"$\bf{subfig_names[v_i]}$", fontsize=13, transform=axs[v_i//2, v_i%2].transAxes)
     axs[v_i//2, v_i%2].axhline(sel_str, color="r", ls="--")
-    axs[v_i//2, v_i%2].legend(title="Mode of selection")
+    axs[v_i//2, v_i%2].legend(fontsize=7, labelspacing=.2, handlelength=1.5, handleheight=.5, handletextpad=.4,
+                                  borderpad=.2, borderaxespad=.2, markerscale=.25)
     axs[v_i//2, v_i%2].set_ylim([0, 2*sel_str])
-    axs[v_i // 2, v_i % 2].set_xlabel(f"{label_names[v_i]}")
+    axs[v_i//2, v_i%2].set_xlabel(f"{label_names[v_i]}")
     if v_i != 2:
         axs[v_i//2, v_i%2].set_xticks(parameter_lists[v_i], labels=parameter_lists[v_i])
 fig.savefig(f"{output_dir}/param_variation_plot.pdf", format="pdf", bbox_inches="tight")

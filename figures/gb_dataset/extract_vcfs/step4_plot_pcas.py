@@ -35,7 +35,7 @@ def getDefaultMarker (idx):
     return DEFAULT_MARKERS[idx % len(DEFAULT_MARKERS)]
 
 
-def plotPCA (theTitle, pcs, evals, categories, pca_plot_file, selectMask=None, plotCentroid=False):
+def plotPCA (theTitle, pcs, evals, categories, pca_plot_file, selectMask=None, plotCentroid=False,axtext=""):
 
 
     color_palette = snscolor(cc.glasbey, n_colors=len(categories)).as_hex()
@@ -105,6 +105,7 @@ def plotPCA (theTitle, pcs, evals, categories, pca_plot_file, selectMask=None, p
 
     plt.legend (theLegend, fontsize=7, labelspacing=.2, handlelength=1.5, handleheight=.5, handletextpad=.4, borderpad=.2, borderaxespad=.2)
     ax = plt.gca()
+    ax.text(-.2, .97, rf"$\bf{{{axtext}}}$", fontsize=13, transform=ax.transAxes)
     leg = ax.get_legend()
     for i in numpy.arange(len(legendColor)):
         leg.legendHandles[i].set_color(legendColor[i])
@@ -140,6 +141,12 @@ def allPcaPlots():
     for reference in ['broad', 'europe', 'gbr_ceu']:
         for to_shrink in ['shrinkage', 'noshrinkage']:
             for genotyping in ['capture_only', 'capture_SG']:
+                axtext = ""
+                if to_shrink == "shrinkage" and genotyping == "capture_only":
+                    if reference == "broad":
+                        axtext = "A"
+                    elif reference == "europe":
+                        axtext = "B"
                 plt.figure(figsize=(3.1, 3.1), layout="constrained")
                 # load specific pca files
                 eval_file = pathlib2.Path (f"{EXTRACTED_PREFIX}_{genotyping}_{reference}_pca_{to_shrink}.eval")
@@ -184,7 +191,7 @@ def allPcaPlots():
                     plotCentroid = False
                 else:
                     plotCentroid = True
-                plotPCA (f"PCA: {genotyping}, {reference}, {to_shrink}", pcs, evals, categories, pca_plot_file, plotCentroid=plotCentroid)
+                plotPCA (f"PCA: {genotyping}, {reference}, {to_shrink}", pcs, evals, categories, pca_plot_file, plotCentroid=plotCentroid, axtext=axtext)
 
                 # # and for the broad analysis, we also plot a zoom on ancient + europe
                 # if (reference == 'broad'):

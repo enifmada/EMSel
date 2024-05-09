@@ -117,6 +117,11 @@ and the following optional arguments:
     selection.
 
 
+--no_neutral
+    Explicitly overrides the requirement that neutral be run for all simulation. Only to be used when parallelizing
+    a simulation across mode of selection.
+
+
 -nc, --num_cores <int, default=1>
     Number of cores to parallelize over. Joblib is used for parallelization, making EMSel easily parallizable on a
     computing cluster.
@@ -190,7 +195,7 @@ and the following optional arguments:
 --force [haploid|diploid]
     If the inputted VCF file contains only homozygous loci, use this flag to determine whether the genotypes are
     read as haploid (1 sample per locus per individual) or homozygous diploid (2 samples per locus per individual).
-    If the inputted VCF file is not all homozygotes, this argument has no effect. 
+    If the inputted VCF file is not all homozygotes, this argument has no effect.
 
 
 --progressbar

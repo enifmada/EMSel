@@ -72,10 +72,10 @@ def plotMap (annoFrame, mapFile):
     ax.add_feature(cartopy.feature.BORDERS, linestyle=':', linewidth=1.5)
 
     fig.canvas.draw()
-    plt.colorbar(im, label='Years before present')
+    plt.colorbar(im, label='Years before present', shrink=.75)
 
     #plt.title ("Location of ancient individuals")
-    plt.tight_layout()
+    #plt.tight_layout()
 
     print (f"save to: {mapFile}")
     plt.savefig (mapFile)

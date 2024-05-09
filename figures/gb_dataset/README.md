@@ -19,7 +19,7 @@ genodata_type = "capture_only"
 ```
 This will also generate the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files needed for the data-matched simulations (see "Figures 9-11" in the figures/simulation README). The data-matched simulations, in turn, are needed to analyze the unconstrained EM and recreate Figure 14.
 
-## Figures 12, 13A+C, S.17-20, (S.23-32)A, Table 1*, Tables S.1-S.3*
+## Figures 12, 13A, S.17-20, (S.23-30)A, Table 1*, Tables S.1-S.3*
 
 Set the following parameters at the beginning of the script `gb_figures.py` and run it using `python gb_figures.py`:
 ```
@@ -32,7 +32,15 @@ classification_types = ["add", "dom", "rec", "het"]
 
 Note that the asterisk after the tables denotes that the generated tables are lacking the correct data in the "Gene(s)" column and confidence intervals for the selection coefficient estimates. These two datapoints are manually added post-hoc, though the script to simulate and analyze the data for the bootstrapped intervals, `sim_bootstraps.py`, is provided.
 
-## Figures 13B+D, (S.23-32)B
+## Figures 13B, (S.31-32)B
+
+Set the following parameters at the beginning of the script `mathieson_manhattans.py` and run it using `python mathieson_manhattans.py`:
+```
+output_dir = "figures/gb_dataset/output"
+genodata_type = "capture_only"
+```
+
+## Figures 13C+D, (S.23-30)B
 
 Set the following parameters at the beginning of the script `plot_binned_trajectories.py` and run it using `python plot_binned_trajectories.py`:
 ```

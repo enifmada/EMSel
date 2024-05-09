@@ -5,9 +5,9 @@ from emsel_util import get_1d_s_data_from_type
 import matplotlib.pyplot as plt
 ###### MODIFY
 
-data_dir = "figures/gb_dataset/data/bootstrap"
-EM_dir = "figures/gb_dataset/EM/bootstrap"
-output_dir = "figures/gb_dataset/output"
+data_dir = "data/bootstrap"
+EM_dir = "EM/bootstrap"
+output_dir = "output"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

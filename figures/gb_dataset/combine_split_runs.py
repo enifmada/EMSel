@@ -2,11 +2,16 @@ import pickle
 from pathlib import Path
 from tqdm import tqdm
 
+###### MODIFY
+
+EM_dir = "EM"
+genodata_type = "capture_only"
+
+###### DO NOT MODIFY
+
 new_ugs = [["neutral", "add"], ["dom"], ["het"], ["rec"], ["full"]]
 total_ugs = len(new_ugs)
 
-EM_dir = "figures/gb_dataset/EM"
-genodata_type = "capture_only"
 chroms = range(1,23)
 
 for chrom in tqdm(chroms):

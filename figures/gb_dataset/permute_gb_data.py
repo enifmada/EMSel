@@ -7,8 +7,8 @@ from tqdm import tqdm
 
 ###### MODIFY
 
-data_dir = "figures/gb_dataset/data"
-output_dir = "figures/gb_dataset/output"
+data_dir = "data"
+output_dir = "output"
 genodata_type = "capture_only"
 MAF_filter = .05
 min_sample_filter = .1

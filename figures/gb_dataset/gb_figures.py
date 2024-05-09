@@ -7,9 +7,9 @@ import pandas as pd
 
 ###### MODIFY
 
-data_dir = "figures/gb_dataset/data"
-EM_dir = "figures/gb_dataset/EM"
-output_dir = "figures/gb_dataset/output"
+data_dir = "data"
+EM_dir = "EM"
+output_dir = "output"
 genodata_type = "capture_only"
 classification_types = ["add", "dom", "rec", "het"]
 

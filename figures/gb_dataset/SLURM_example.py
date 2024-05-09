@@ -4,12 +4,12 @@ import pathlib
 genodata_type = "capture_only"
 max_run_hours = 10
 num_cores = 30
-hmm_script = pathlib.Path('run_emsel.py')
-output_dir = pathlib.Path('figures/gb_dataset/output')
-data_dir = pathlib.Path('figures/gb_dataset/data')
+hmm_script = pathlib.Path('../../run_emsel.py')
+output_dir = pathlib.Path('output')
+data_dir = pathlib.Path('data')
 
-#this directory will have to be made beforehand
-qsub_dir = pathlib.Path('figures/gb_dataset/qsubs')
+#this directory must be made beforehand
+qsub_dir = pathlib.Path('qsubs')
 
 ###### DO NOT MODIFY
 

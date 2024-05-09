@@ -8,8 +8,8 @@ from emsel_util import plot_qq
 
 ###### MODIFY
 
-EM_dir = "figures/gb_dataset/EM"
-output_dir = "figures/gb_dataset/output"
+EM_dir = "EM"
+output_dir = "output"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

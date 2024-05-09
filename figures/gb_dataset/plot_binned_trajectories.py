@@ -4,6 +4,16 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import colorcet as cc
 
+###### MODIFY
+
+data_dir = "data"
+EM_dir = "EM"
+output_dir = "output"
+genodata_type = "capture_only"
+classification_types = ["add", "dom", "rec", "het"]
+
+###### DO NOT MODIFY
+
 plt.rcParams.update({'font.size': 9,
                      'text.usetex': False,
                      'font.family': 'serif',
@@ -11,16 +21,6 @@ plt.rcParams.update({'font.size': 9,
                      'mathtext.fontset': 'cm',
                      'axes.unicode_minus': False,
                      'axes.formatter.use_mathtext': True,})
-
-###### MODIFY
-
-data_dir = "figures/gb_dataset/data"
-EM_dir = "figures/gb_dataset/EM"
-output_dir = "figures/gb_dataset/output"
-genodata_type = "capture_only"
-classification_types = ["add", "dom", "rec", "het"]
-
-###### DO NOT MODIFY
 
 #these are the lead SNPs for the non-significant example on chromosome 7 and the comparison to Mathieson and Terhorst
 lead_snp_idxs = np.array([355758, 490617, 597996])

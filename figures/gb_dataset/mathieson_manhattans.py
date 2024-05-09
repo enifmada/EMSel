@@ -6,7 +6,7 @@ from scipy.stats import chi2
 from emsel_util import bh_correct, extendedFisher, windowMatrix
 
 ###### MODIFY
-output_dir = "figures/gb_dataset/output"
+output_dir = "output"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

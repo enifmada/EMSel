@@ -5,7 +5,7 @@ from cycler import cycler
 
 ###### MODIFY
 
-output_dir = "figures/gb_dataset/output"
+output_dir = "output"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 ###### MODIFY
 
-data_dir = "figures/gb_dataset/data/bootstrap"
-output_dir = "figures/gb_dataset/output/bootstrap"
+data_dir = "data/bootstrap"
+output_dir = "output/bootstrap"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

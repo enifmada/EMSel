@@ -6,9 +6,9 @@ from emsel_util import bh_correct, get_1d_s_data_from_type
 
 ###### MODIFY
 
-data_dir = "figures/gb_dataset/data"
-EM_dir = "figures/gb_dataset/EM"
-output_dir = "figures/gb_dataset/output"
+data_dir = "data"
+EM_dir = "EM"
+output_dir = "output"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

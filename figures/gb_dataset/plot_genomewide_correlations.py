@@ -7,7 +7,7 @@ import seaborn as sns
 
 ###### MODIFY
 
-output_dir = "figures/gb_dataset/output"
+output_dir = "output"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY

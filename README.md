@@ -1,5 +1,5 @@
 # EMSel
-Code accompanying Fine and Steinrücken (2024). We provide the ability to simulate (`simulate_data.py`) and analyze (`run_emsel.py`) a time-series allele frequency dataset under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid).
+Code accompanying Fine and Steinrücken (2024). We provide the tool `run_emsel.py` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, the script `simulate_data.py` can be used to simulate such data.
 
 The subdirectory [figures/](figures/) contains all code to compile the data and reproduce the figures from the paper.
 

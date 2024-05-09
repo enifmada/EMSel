@@ -19,9 +19,9 @@ init_dists = [.005, .25, "recip"]
 
 save_gengamma = False
 
-EM_dir = "figures/simulation/EM"
-classified_dir = "figures/simulation/classified"
-output_dir = "figures/simulation/output"
+EM_dir = "EM"
+classified_dir = "classified"
+output_dir = "output"
 
 ###### DO NOT MODIFY
 

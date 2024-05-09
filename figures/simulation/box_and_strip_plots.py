@@ -17,10 +17,10 @@ init_dists = [.005, .25, "recip"]
 #set to True for strip plots (e.g. Figure 6)
 cond_only = False
 
-data_dir = "figures/simulation/data"
-EM_dir = "figures/simulation/EM"
-output_dir = "figures/simulation/output"
-classified_dir = "figures/simulation/classified"
+data_dir = "data"
+EM_dir = "EM"
+output_dir = "output"
+classified_dir = "classified"
 
 
 

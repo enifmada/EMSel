@@ -9,8 +9,8 @@ import seaborn as sns
 
 ###### MODIFY
 
-output_dir = "figures/simulation/output"
-EM_dir = "figures/simulation/EM/param_variation"
+output_dir = "output"
+EM_dir = "EM/param_variation"
 
 ###### DO NOT MODIFY
 

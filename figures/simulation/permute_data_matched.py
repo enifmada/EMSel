@@ -4,7 +4,7 @@ from pathlib import Path
 
 ####### MODIFY
 
-data_dir = "figures/simulation/data"
+data_dir = "data"
 
 ###### DO NOT MODIFY
 df_path = Path(f"{data_dir}/neutral_g125_dal_special_data.csv")

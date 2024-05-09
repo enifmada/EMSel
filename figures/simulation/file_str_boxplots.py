@@ -14,12 +14,11 @@ sel_strs = [.005, .01, .025, .05]
 num_gens = 251
 init_dist = .25
 
-data_dir = "figures/simulation/data"
-EM_dir = "figures/simulation/EM"
-output_dir = "figures/simulation/output"
+data_dir = "data"
+EM_dir = "EM"
+output_dir = "output"
 
 file_strs = ["Ne5000_", "", "Ne20000_"]
-
 
 ####### DO NOT MODIFY
 

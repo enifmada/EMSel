@@ -7,8 +7,8 @@ from scipy.stats import chi2
 
 ###### MODIFY
 
-EM_dir = "figures/simulation/EM"
-output_dir = "figures/simulation/output"
+EM_dir = "EM"
+output_dir = "output"
 
 ###### DO NOT MODIFY
 

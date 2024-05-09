@@ -15,8 +15,8 @@ sel_strs = [.005, .01, .025, .05]
 num_gens_list = [101, 251, 1001]
 init_dists = [.005, .25, "recip"]
 
-EM_dir = "figures/simulation/EM"
-output_dir = "figures/simulation/output"
+EM_dir = "EM"
+output_dir = "output"
 
 ###### DO NOT MODIFY
 

@@ -1,4 +1,4 @@
-# GB Dataset
+# GB aDNA Dataset
 
 The scripts in this directory recreate Figures 12-14 of the main text and S.12-S21, S.22B, S.23-S.32 of the Supplementary Material, as well as Table 1 of the main text and Tables S.1-S.3 of the Supplementary Material. This README begins with a set of commands that must be run prior to all figures, then  is organized by which (if any) additional non-plotting scripts must be run to generate a given set of figures. All commands to analyze and produce figures are described therein.
 

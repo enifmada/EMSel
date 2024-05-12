@@ -6,6 +6,7 @@ The subdirectory [figures/](figures/) contains all code to compile the data and 
 ## Installation
 
 We recommend following these steps to install EMSel:
+
 0. Install `conda`, if you have not done so already.
 1. Clone this repository or download it as a .zip file.
 2. Set up a new Python 3.9 environment via the command `conda create --name {env_name} python=3.9`.

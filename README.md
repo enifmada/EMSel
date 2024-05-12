@@ -10,7 +10,7 @@ We recommend following these steps to install EMSel:
 0. Install `conda`, if you have not done so already.
 1. Clone this repository or download it as a .zip file.
 2. Set up a new Python 3.9 environment via the command `conda create --name {env_name} python=3.9`.
-3. Navigate to the EMSel root folder and activate the environment via the tommand `conda activate {env_name}`.
+3. Navigate to the EMSel root folder and activate the environment via the command `conda activate {env_name}`.
 4. Install all required packages via the command `conda install --file requirements.txt -c conda-forge`.
 
 ## Running EMSel

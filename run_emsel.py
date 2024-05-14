@@ -20,7 +20,7 @@ def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, min_in
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input_path", type=argparse.FileType("rb"), help="path to input dataset")
-parser.add_argument("output_path", type=argparse.FileType("wb"), help="path to output file")
+parser.add_argument("output_path", type=str, help="base path of output file - appropriate suffixes added later")
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--time_before_present", action="store_true", help="dates provided start at a number at the earliest time and count down towards the present")
 group.add_argument("--time_after_zero", action="store_true", help="dates provided start at zero at the earliest time and count up towards the present")

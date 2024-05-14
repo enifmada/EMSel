@@ -75,8 +75,7 @@ if args.sid_dict is not None:
             hmm_dd["sid_dict"][k] = v
 
 
-
-hmm_path = Path(args.output_path.name)
+hmm_basepath = args.output_path
 pd_path = Path(args.input_path.name)
 print(pd_path)
 print(pd_path.suffix)
@@ -194,7 +193,7 @@ for selmode_i, sel_type in enumerate(selection_modes):
         hmm_dd[f"{sel_type}_run"] = hmm_dict
 
 print("saving output...")
-save_csv_output(hmm_dd, hmm_path.with_suffix(".csv"))
+save_csv_output(hmm_dd, hmm_basepath+".csv")
 if args.full_output:
-    with open(hmm_path.with_suffix(".pkl"), "wb") as file:
+    with open(hmm_basepath+".pkl", "wb") as file:
         pickle.dump(hmm_dd, file)

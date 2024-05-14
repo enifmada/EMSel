@@ -644,8 +644,6 @@ def save_csv_output(hmm_dict, hmm_path):
     info_array[:, 1] = hmm_dict["neutral_ll"].flatten()
     cols = ["unfiltered index", "neutral_ll"]
     for ud_i, ud_type in enumerate(hmm_dict["selection_modes"][1:], start=1):
-        print(hmm_dict[f"{ud_type}_run"]["s_final"].shape)
-        print(hmm_dict[f"{ud_type}_run"]["s_final"].T)
         info_array[:, 3*ud_i-1] = hmm_dict[f"{ud_type}_run"]["ll_final"].flatten()
         info_array[:, 3*ud_i:3*(ud_i+1)-1] = hmm_dict[f"{ud_type}_run"]["s_final"].T
         cols.extend([f"{ud_type}_ll", f"{ud_type}_s1", f"{ud_type}_s2"])

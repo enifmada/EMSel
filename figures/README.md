@@ -2,6 +2,8 @@
 
 This directory contains scripts to recreate the data-derived figures in the main text and Supplementary Material of Fine and Steinrücken (2024), or generate similar plots for a dataset of your choosing. Step-by-step instructions to generate each plot can be found in the README of each subfolder.
 
+To run the figures scripts, additional packages are needed - they can be installed by running the command `pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel`.
+
 ## simulation subdirectory
 
 The subdirectory [simulation/](simulation/) contains scripts to generate the boxplots, strip plots, AUC plots, Q-Q plots, and confusion matrices found in Sections 3 and 4.2 of the manuscript, as well as Figures S.1-S.11 of the Supplementary Material.

@@ -1,5 +1,5 @@
 # EMSel
-Code accompanying Fine and Steinrücken (2024). We provide the command-line tool `emsel` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, the `emsel-sim` can be used to simulate such data.
+Code accompanying Fine and Steinrücken (2024). We provide the command-line tool `emsel` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, `emsel-sim` can be used to simulate such data.
 
 The subdirectory [figures/](figures/) contains all code to compile the data and reproduce the figures from the paper.
 

@@ -33,3 +33,6 @@ Documentation = "https://github.com/steinrue/emsel#readme"
 
 [project.scripts]
 emsel = "emsel.run_emsel:main"
+
+[tool.hatch.version]
+path = "src/emsel/__about__.py"

@@ -6,7 +6,7 @@ from pathlib import Path
 import seaborn as sns
 import pandas as pd
 from cycler import cycler
-from emsel_util import params_dict_to_str, get_1d_s_data_from_type, convert_from_abbrevs
+from emsel.emsel_util import params_dict_to_str, get_1d_s_data_from_type, convert_from_abbrevs
 
 ####### MODIFY
 

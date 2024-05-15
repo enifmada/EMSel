@@ -3,7 +3,7 @@ from matplotlib.patches import Rectangle
 import numpy as np
 from pathlib import Path
 import pickle
-from emsel_util import classify_full_run, get_one_count_matrix, params_dict_to_str, get_llg_array, get_lr_statistic, get_llgka_array, full_bh_procedure, convert_from_abbrevs, convert_to_abbrevs, plot_qq
+from emsel.emsel_util import classify_full_run, get_one_count_matrix, params_dict_to_str, get_llg_array, get_lr_statistic, get_llgka_array, full_bh_procedure, convert_from_abbrevs, convert_to_abbrevs, plot_qq
 from copy import deepcopy
 from scipy.stats import chi2, gengamma
 from pandas import DataFrame

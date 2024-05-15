@@ -1,7 +1,7 @@
 import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
-from emsel_util import params_dict_to_str, convert_from_abbrevs
+from emsel.emsel_util import params_dict_to_str, convert_from_abbrevs
 from cycler import cycler
 from copy import deepcopy
 import pandas as pd

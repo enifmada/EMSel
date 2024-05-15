@@ -32,7 +32,7 @@ plots = ["Cartopy", "colorcet", "cycler", "seaborn"]
 Documentation = "https://github.com/steinrue/emsel#readme"
 
 [project.scripts]
-emsel = "run_emsel:main"
+emsel = "emsel.run_emsel:main"
 
 [tool.hatch.version]
 path = "src/emsel/__about__.py"

@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 import pickle
-from emsel_util import bh_correct, extendedFisher, windowMatrix, convert_from_abbrevs, plot_qq
+from emsel.emsel_util import bh_correct, extendedFisher, windowMatrix, convert_from_abbrevs, plot_qq
 import pandas as pd
 
 ###### MODIFY

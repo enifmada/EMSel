@@ -1,7 +1,7 @@
 import numpy as np
 from pathlib import Path
 import pickle
-from emsel_util import bh_correct, get_1d_s_data_from_type, get_llg_array, get_llgka_array, full_bh_procedure, classify_full_run
+from emsel.emsel_util import bh_correct, get_1d_s_data_from_type, get_llg_array, get_llgka_array, full_bh_procedure, classify_full_run
 
 ###### MODIFY
 

@@ -1,7 +1,7 @@
 import numpy as np
 import pickle
 from pathlib import Path
-from emsel_util import get_sel_coeffs_from_type, generate_data
+from emsel.emsel_util import get_sel_coeffs_from_type, generate_data
 import matplotlib.pyplot as plt
 
 ###### MODIFY

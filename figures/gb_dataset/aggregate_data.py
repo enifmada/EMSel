@@ -2,7 +2,7 @@ import numpy as np
 from pathlib import Path
 import pickle
 from scipy.stats import chi2
-from emsel_util import bh_correct, get_1d_s_data_from_type
+from emsel.emsel_util import bh_correct, get_1d_s_data_from_type
 
 ###### MODIFY
 

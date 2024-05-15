@@ -5,7 +5,7 @@ The subdirectory [figures/](figures/) contains all code to compile the data and 
 
 ## Installation
 
-To install EMSel, run the `pip` command `pip install "emsel @ git+https://github.com/steinrue/EMSel`. This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools, as well as download the `sample_datasets` and `figures` subdirectories, which will be placed in the `src/emsel` directory relative to wherever the `pip` command is run.
+To install EMSel, run the `pip` command `pip install "emsel @ git+https://github.com/steinrue/EMSel"`. This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools, as well as download the `sample_datasets` and `figures` subdirectories, which will be placed in the `src/emsel` directory relative to wherever the `pip` command is run.
 
 ## Running EMSel
 

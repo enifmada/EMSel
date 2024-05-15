@@ -1,5 +1,5 @@
 import numpy as np
-from core import HMM
+from emsel.core import HMM
 import pickle
 from pathlib import Path
 from tqdm import tqdm

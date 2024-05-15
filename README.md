@@ -5,12 +5,12 @@ The subdirectory [figures/](figures/) contains all code to compile the data and 
 
 ## Installation
 
-To install EMSel, run the `pip` command `pip install "emsel @ git+https://github.com/steinrue/EMSel"`. This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools, as well as download the `sample_datasets` and `figures` subdirectories, which will be placed in the `src/emsel` directory relative to wherever the `pip` command is run.
+To install EMSel, run the `pip` command `pip install "emsel @ git+https://github.com/steinrue/EMSel"`. This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools. To additionally install packages needed to run the scripts in the [figures/](figures/) subdirectory, use the command `pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel"`. Also, note that all example scripts in this README assume that you have downloaded or cloned this entire github repository and that `sample_datasets` is a subfolder of the current working directory.
+
 
 ## Running EMSel
 
-To run EMSel, you must have either a CSV file or a VCF file. All example scripts in this README assume that `sample_datasets` is a subfolder of the current working directory.
-
+To run EMSel, you must have either a CSV file or a VCF file. 
 ### Using EMSel with CSVs
 
 The CSV should be formatted as the following:

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "emsel"
+dynamic = ["version"]
+description = 'EM algorithm for quantifying general diploid selection'
+readme = "README.md"
+requires-python = ">=3.9"
+license = "GPL-3.0-or-later"
+authors = [
+  { name = "Adam Fine", email = "afine2@uchicago.edu" },
+  { name = "Matthias Steinruecken", email = "steinrue@uchicago.edu" },
+]
+dependencies = [
+"joblib",
+"matplotlib",
+"numba",
+"numpy",
+"pandas",
+"pathlib2",
+"scikit-allel",
+"scipy",
+"sympy",
+"tqdm",]
+
+[project.optional-dependencies]
+plots = ["Cartopy", "colorcet", "cycler", "seaborn"]
+
+[project.urls]
+Documentation = "https://github.com/steinrue/emsel#readme"
+
+[project.scripts]
+emsel = "emsel.run_emsel:main"

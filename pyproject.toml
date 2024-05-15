@@ -39,3 +39,6 @@ path = "src/emsel/__about__.py"
 
 [tool.hatch.build.targets.sdist]
 include = "src/emsel/*.py"
+
+[tool.hatch.build.targets.wheel]
+include = "src/emsel/*.py"

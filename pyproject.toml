@@ -36,3 +36,6 @@ emsel = "emsel.run_emsel:main"
 
 [tool.hatch.version]
 path = "src/emsel/__about__.py"
+
+[tool.hatch.build.targets.sdist]
+include = "src/emsel/*.py"

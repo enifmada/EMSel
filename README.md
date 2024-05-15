@@ -161,7 +161,7 @@ and the following optional arguments:
 
 --save_csv
     If input is a VCF, saves a CSV of the same name containing the intermediate conversion of the VCF into
-    (sampling time, derive alleles, total sample) triplets to speed up future runs. Note that the saved CSV will
+    (sampling time, total samples, derived alleles) triplets to speed up future runs. Note that the saved CSV will
     include conversion from years to generations.
 
 

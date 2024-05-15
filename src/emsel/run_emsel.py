@@ -6,7 +6,7 @@ from tqdm import tqdm
 import argparse
 import allel
 from pandas import read_csv
-from emsel_util import vcf_to_useful_format, save_csv_output
+from emsel.emsel_util import vcf_to_useful_format, save_csv_output
 from joblib import Parallel, delayed
 
 def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, min_init_val=1e-8, min_ic = 5):

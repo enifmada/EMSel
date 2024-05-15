@@ -28,6 +28,9 @@ dependencies = [
 [project.optional-dependencies]
 plots = ["Cartopy", "colorcet", "cycler", "seaborn"]
 
+[project.extras]
+plots = ["Cartopy", "colorcet", "cycler", "seaborn"]
+
 [project.urls]
 Documentation = "https://github.com/steinrue/emsel#readme"
 

@@ -1,21 +1,15 @@
 # EMSel
-Code accompanying Fine and Steinrücken (2024). We provide the tool `run_emsel.py` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, the script `simulate_data.py` can be used to simulate such data.
+Code accompanying Fine and Steinrücken (2024). We provide the command-line tool `emsel` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, the `emsel-sim` can be used to simulate such data.
 
 The subdirectory [figures/](figures/) contains all code to compile the data and reproduce the figures from the paper.
 
 ## Installation
 
-We recommend following these steps to install EMSel:
-
-0. Install `conda`, if you have not done so already.
-1. Clone this repository or download it as a .zip file.
-2. Set up a new Python 3.9 environment via the command `conda create --name {env_name} python=3.9`.
-3. Navigate to the EMSel root folder and activate the environment via the command `conda activate {env_name}`.
-4. Install all required packages via the command `conda install --file requirements.txt -c conda-forge`.
+To install EMSel, run the `pip` command `pip install "emsel @ git+https://github.com/steinrue/EMSel`. This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools, as well as download the `sample_datasets` and `figures` subdirectories, which will be placed in the `src/emsel` directory relative to wherever the `pip` command is run.
 
 ## Running EMSel
 
-To run EMSel (via `run_emsel.py`), you must have either a CSV file or a VCF file.
+To run EMSel, you must have either a CSV file or a VCF file. All example scripts in this README assume that `sample_datasets` is a subfolder of the current working directory.
 
 ### Using EMSel with CSVs
 
@@ -35,10 +29,10 @@ Any VCF that can be read by `scikit-allele`, it can be used with EMSel. Using EM
 ### Minimal example and output
 
 A minimal sample call to EMSel with a CSV:
-`python run_emsel.py sample_datasets/add_s025_g251_d25_data.csv output_EM --time_after_zero`
+`emsel sample_datasets/add_s025_g251_d25_data.csv output_EM --time_after_zero`
 
 A minimal sample call with a VCF:
-`python run_emsel.py sample_datasets/GB_c22.vcf output_EM --info_file sample_datasets/GB_individuals.table --info_cols Genetic_ID Date_mean --time_before_present`
+`emsel sample_datasets/GB_c22.vcf output_EM --info_file sample_datasets/GB_individuals.table --info_cols Genetic_ID Date_mean --time_before_present`
 
 Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. The table is formatted as a indexed and column-labelled csv with one row for each replicate with (3M+2) columns per row, where M equals the number of non-neutral selection modes analyzed under. The first column are the index of each row within the unfiltered dataset (see -maf and --min_sample_density for a description of the filters). The second column is the neutral log-likelihood. Each set of 3 subsequent columns is the tuple (log_likelihood, s_1, s_2) for each selection mode at termination of the algorithm.
 
@@ -224,7 +218,24 @@ The 'exit_codes' array contained in the full_output file has the following possi
 
 ## Simulating data
 
-`simulate_data.py` uses the discrete Wright-Fisher model to simulate allele frequencies under a given selection scenario (selection strength, mode of selection, initial condition, number of generations simulated, sampling scheme). 
+`simulate_data.py` (used as `emsel-sim` from the command line) uses the discrete Wright-Fisher model to simulate allele frequencies under a given selection scenario (selection strength, mode of selection, initial condition, number of generations simulated, sampling scheme). 
+
+### Output and examples
+
+`emsel-sim` outputs three different file types:
+
+1. `args_{suffix}.pkl` - contains a dictionary of the parameters used to run all sets of simulations. 
+
+For each simulation condition, the following two files are outputted:
+
+2. `{exp_name}_{suffix}data.csv` - contains the sampled allele frequencies and sampling times (see Using EMSel with CSVs for full formatting description).
+3. `{exp_name}_{suffix}pd.bz2` - a bz2-zipped pickle file containing the simulation parameters for this particular simulation condition.
+
+Sample calls to `simulate_data.py` for a non-data-matched set of simulations and a data-matched simulation are as follows:
+
+`emsel-sim . -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
+
+`emsel-sim . -s .005 .05 .2 --sel_types neutral add rec --data_matched sample_datasets/GB_means.txt sample_datasets/GB_missingness.txt sample_datasets/GB_sample_sizes.table`
 
 ### Command-line arguments
 
@@ -304,20 +315,3 @@ Number of replicates simulated from each set of simulation parameters.
 ```
 
 When specifying multiple values for sel_coeffs, sel_types, num_gens, and init_conds, simulation is done for each combination on values (i.e. on itertools.product(sel_coeffs, sel_types, num_gens, init_conds), for a total of len(sel_coeffs)*len(sel_types)*len(num_gens)*len(init_conds) sets of files.
-
-### Output and examples
-
-`simulate_data.py` outputs three different file types:
-
-1. `args_{suffix}.pkl` - contains a dictionary of the parameters used to run all sets of simulations. 
-
-For each simulation condition, the following two files are outputted:
-
-2. `{exp_name}_{suffix}data.csv` - contains the sampled allele frequencies and sampling times (see Using EMSel with CSVs for full formatting description).
-3. `{exp_name}_{suffix}pd.bz2` - a bz2-zipped pickle file containing the simulation parameters for this particular simulation condition.
-
-Sample calls to `simulate_data.py` for a non-data-matched set of simulations and a data-matched simulation are as follows:
-
-`python simulate_data.py . -s .01 .1 -g 101 251 -ic .05 recip --suffix big_s`
-
-`python simulate_data.py . -s .005 .05 .2 --sel_types neutral add rec --data_matched sample_datasets/GB_means.txt sample_datasets/GB_missingness.txt sample_datasets/GB_sample_sizes.table`

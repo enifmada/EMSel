@@ -79,7 +79,7 @@ genodata_type = "capture_only"
 
 ## Figure S.16
 
-Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `run_emsel.py` command. Then, rerun `python gb_figures.py` with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
+Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command. Then, rerun `python gb_figures.py` with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
 
 ## Figure S.21
 

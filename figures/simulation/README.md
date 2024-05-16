@@ -9,7 +9,7 @@ The scripts in this directory can be used to recreate all figures in Sections 3 
 
 These figures are all generated from the large simulation described in Section 3. The simulated data can be recreated and reanalyzed by:
 
-1. Creating the directories `data`, `EM`, `classified` and `output` within EMSel (or externally, if you prefer).
+1. Creating the directories `data`, `EM`, `classified` and `output` within this subdirectory (or externally, if you prefer).
 2. Running `emsel-sim data -s .005 .01 .025 .05 -g 101 251 1001 -ic recip .005 .25 --sel_types neutral add dom rec over under --seed 5 -n 500`.
 3. For each dataset in `data`, running `emsel data/{file_name}.csv EM/{file_name}_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output`.
 

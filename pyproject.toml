@@ -20,16 +20,16 @@ dependencies = [
 "numpy",
 "pandas",
 "pathlib2",
-"scikit-allel",
+"scikit-allel>=1.3",
 "scipy",
 "sympy",
 "tqdm",]
 
 [project.optional-dependencies]
-plots = ["Cartopy", "colorcet", "cycler", "seaborn"]
+plots = ["Cartopy", "colorcet", "cycler", "jinja2", "seaborn>=0.13"]
 
 [project.extras]
-plots = ["Cartopy", "colorcet", "cycler", "seaborn"]
+plots = ["Cartopy", "colorcet", "cycler", "jinja2", "seaborn>=0.13"]
 
 [project.urls]
 Documentation = "https://github.com/steinrue/emsel#readme"

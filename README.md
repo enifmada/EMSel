@@ -1,13 +1,23 @@
 # EMSel
-Code accompanying Fine and Steinrücken (2024). We provide the command-line tool `emsel` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, `emsel-sim` can be used to simulate such data.
+Code accompanying Fine & Steinrücken (2024): A novel expectation-maximization approach to infer general diploid selection from time-series genetic data. (https://doi.org/10.1101/2024.05.10.593575)
+
+We provide the command-line tool `emsel` to analyze time-series allele frequency datasets under multiple modes of selection (additive, dominant, recessive, over/underdominance, general diploid). In addition, `emsel-sim` can be used to simulate such data.
 
 The subdirectory [figures/](figures/) contains all code to compile the data and reproduce the figures from the paper.
 
 ## Installation
 
-To install EMSel, run the `pip` command `pip install "emsel @ git+https://github.com/steinrue/EMSel"`. This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools. 
+To install EMSel, run the `pip` command
+```
+pip install "emsel @ git+https://github.com/steinrue/EMSel"
+```
+This will install all necessary packages to run the `emsel` and `emsel-sim` command-line tools. 
 
-To additionally install packages needed to run the scripts in the [figures/](figures/) subdirectory, use the command `pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel"`. Also, note that all example scripts in this README assume that you have downloaded or cloned this entire github repository and that `sample_datasets` is a subfolder of the current working directory.
+To additionally install packages needed to run the scripts in the [figures/](figures/) subdirectory, use the command
+```
+pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel"
+```
+Also, note that all example scripts in this README assume that `sample_datasets` is a subfolder of the current working directory.
 
 
 ## Running EMSel

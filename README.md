@@ -297,10 +297,10 @@ Number of replicates simulated from each set of simulation parameters.
     Example files are also provided.
 
 
---small_s
-    Use of this flag indicates that the formula for updating allele frequencies in the Wright-Fisher model should
-    use the small s approximation (p' = p + p(1-p)*((1-2p)s1 + p*s2)) rather than the full formula,
-    p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2).
+--no_small_s
+    By default, the formula for updating allele frequencies in the Wright-Fisher model uses the small s approximation
+    (p' = p + p(1-p)*((1-2p)s1 + p*s2)). Use this flag to indicate that the full formula,
+    p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2), should be used instead.
 
 
 --seed <int>

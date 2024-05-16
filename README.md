@@ -31,10 +31,10 @@ Any VCF that can be read by `scikit-allele`, it can be used with EMSel. Using EM
 ### Minimal example and output
 
 A minimal sample call to EMSel with a CSV:
-`emsel sample_datasets/add_s025_g251_d25_data.csv output_EM --time_after_zero`
+`emsel sample_datasets/add_s025_g251_d25_data.csv output_EM --time_after_zero --progressbar`
 
 A minimal sample call with a VCF:
-`emsel sample_datasets/GB_c22.vcf output_EM --info_file sample_datasets/GB_individuals.table --info_cols Genetic_ID Date_mean --time_before_present`
+`emsel sample_datasets/GB_c22.vcf output_EM --info_file sample_datasets/GB_individuals.table --info_cols Genetic_ID Date_mean --time_before_present --progressbar`
 
 Both of these will create the file `output_EM.csv` containing a simple table of the results of running EMSel in all available modes of selection. The table is formatted as a indexed and column-labelled csv with one row for each replicate with (3M+2) columns per row, where M equals the number of non-neutral selection modes analyzed under. The first column are the index of each row within the unfiltered dataset (see -maf and --min_sample_density for a description of the filters). The second column is the neutral log-likelihood. Each set of 3 subsequent columns is the tuple (log_likelihood, s_1, s_2) for each selection mode at termination of the algorithm.
 

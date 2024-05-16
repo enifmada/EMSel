@@ -77,8 +77,6 @@ def main():
 
     hmm_basepath = args.output_path
     pd_path = Path(args.input_path.name)
-    print(pd_path)
-    print(pd_path.suffix)
     num_cores = args.num_cores
 
     if not pd_path.is_file():
@@ -133,7 +131,7 @@ def main():
 
     if pd_path.suffix == ".vcf" and args.save_csv:
         np.savetxt(pd_path.with_suffix(".csv"), full_array[combo_mask, :], delimiter="\t", fmt="%d",
-                   header="Each row = one replicate; each set of three columns = (sampling time, total samples, derived alleles)")
+                   header="Each row = one replicate; each set of three columns = (sampling time; total samples; derived alleles)")
 
     if pd_path.suffix == ".vcf" and args.full_output:
         hmm_dd["pos"] = vcf_file["variants/POS"][combo_mask]
@@ -152,7 +150,7 @@ def main():
             hmm_dd["selection_modes"] = ["neutral", *hmm_dd["selection_modes"]]
         selection_modes = hmm_dd["selection_modes"]
     for selmode_i, sel_type in enumerate(selection_modes):
-        print(f"{sel_type}!")
+        print(f"Now analyzing: {sel_type}!")
         if num_cores > 1:
             parallel_loop = tqdm(range(hmm_data["final_data"].shape[0])) if args.progressbar else range(hmm_data["final_data"].shape[0])
             with Parallel(n_jobs=num_cores) as parallel:

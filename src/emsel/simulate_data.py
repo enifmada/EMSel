@@ -1,5 +1,5 @@
 import numpy as np
-from emsel.emsel_util import params_dict_to_str, generate_data, get_sel_coeffs_from_type
+from emsel_util import params_dict_to_str, generate_data, get_sel_coeffs_from_type
 import pickle
 import matplotlib.pyplot as plt
 from pathlib import Path
@@ -29,7 +29,7 @@ def main():
     parser.add_argument("--data_matched", type=str, nargs=3, default=["", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
     parser.add_argument("--seed", type=int, default=5, help="seed")
     parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
-    parser.add_argument("--small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")
+    parser.add_argument("--no_small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")
     parser.add_argument("--suffix", type=str, default="", help="file names suffix to differentiate")
     args = parser.parse_args()
 
@@ -61,7 +61,7 @@ def main():
         args_dict["sel_types_list"].append(arg_sel_type)
     args_dict["ic_list"] = args.init_conds
     args_dict["seed"] = args.seed
-    args_dict["small_s"] = args.small_s
+    args_dict["small_s"] = False if args.no_small_s else True
 
     if args.suffix != "":
         args.suffix = args.suffix + "_"
@@ -75,10 +75,10 @@ def main():
 
     if args.data_matched[0] != "":
         sampling_matrix = np.loadtxt(Path(f"{args.data_matched[2]}"), skiprows=1, dtype=int)
-        means_file = np.loadtxt(args.data_matched[0], delimiter="\n")
+        means_file = np.loadtxt(args.data_matched[0])
         if means_file[0] != .05:
             print("WARNING: first value of means file is not 0.05 - may not be a MAF filter")
-        missingness_file = np.loadtxt(args.data_matched[1], delimiter="\n")
+        missingness_file = np.loadtxt(args.data_matched[1])
         if missingness_file[0] != .1:
             print("WARING: first value of missingness file is not 0.1 - may not be a missingness filter")
         sampling_matrix[:, 0] = sampling_matrix[-1, 0] - sampling_matrix[:, 0]
@@ -90,7 +90,8 @@ def main():
         args_dict["table_path"] = args.data_matched[2]
 
     temp_seed = args_dict["seed"]
-    args_save_path = Path(f"{args.output_directory}/args_{args.suffix}.pkl")
+    save_path_end = "" if args.suffix == "" else f"_{args.suffix[:-1]}"
+    args_save_path = Path(f"{args.output_directory}/args{save_path_end}.pkl")
     for sel_str, sel_type, init_dist, num_gens in itprod(args_dict["s_list"], args_dict["sel_types_list"], args_dict["ic_list"], args_dict["g_list"]):
         temp_seed += 1
         if sel_type == "under" and init_dist == .005:
@@ -151,7 +152,7 @@ def main():
             fig, axs = plt.subplots(1,1,figsize=(20,20),layout="constrained")
             axs.plot(data_dict["true_data"].T)
             axs.plot(np.mean(data_dict["true_data"], axis=0), color="k", lw=2)
-            fig.savefig(Path(f"{args.output_directory}/{exp_name}_{args.suffix}_plot.png"), bbox_inches="tight")
+            fig.savefig(Path(f"{args.output_directory}/{exp_name}_{args.suffix}plot.png"), bbox_inches="tight")
             plt.close(fig)
 
         data_csv = np.zeros((data_dict["true_data"].shape[0], data_dict["sample_locs"].shape[0]*3))
@@ -159,12 +160,10 @@ def main():
         data_csv[:, ::3] = data_dict["sample_locs"]
         data_csv[:, 1::3] = data_dict["nt"]
         data_csv[:, 2::3] = data_dict["obs_counts"]
-        if args.data_matched[0] != "":
-            del pd["real_data_file"]
         with open(params_filename, "wb") as file:
             pickle.dump(pd, file)
         np.savetxt(data_filename, data_csv, delimiter="\t", fmt="%d",
-                   header="Each row = one replicate; each set of three columns = (sampling time, total samples, derived alleles)")
+                   header="Each row = one replicate; each set of three columns = (sampling time; total samples; derived alleles)")
     with open(args_save_path, "wb") as file:
         pickle.dump(args_dict, file)
 

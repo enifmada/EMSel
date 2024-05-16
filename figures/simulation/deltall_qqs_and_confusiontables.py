@@ -83,7 +83,7 @@ for num_gens in num_gens_list:
                 pdict["sel_type"] = sel_type
                 pdict["sel_str"] = sel_str
                 exp_name = params_dict_to_str(**pdict)
-                onep_path = Path(f"{exp_name}_EM.pkl")
+                onep_path = Path(f"{EM_dir}/{exp_name}_EM.pkl")
                 if sel_type == "under" and not onep_path.is_file():
                     final_sel_types = ["add", "dom", "rec", "over"]
                     continue
@@ -154,7 +154,7 @@ for num_gens in num_gens_list:
 
         indices = [f"Neutral"]
         if save_bh:
-            tpath = Path(f"{row_list[0][0]}_classified.pkl")
+            tpath = Path(f"{classified_dir}/{row_list[0][0]}_classified.pkl")
             bh_dict = {
                 "bh_classes": test_vals[0],
                 "p_vals": g_p_val_matrix[0],

@@ -79,7 +79,9 @@ file_strs = ["Ne5000_", "", "Ne20000_"]
 To generate Figure S.10, run `python Ne_misspec_qqs.py`. Modify the directory paths in the script if needed.
 
 ### Figure S.11:
-First, for every file in `data` that contains `g251_d25`, run `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_Ns100_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ns 100 --hidden_interp linear --ic_update_type fixed`, `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_linear_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output --hidden_interp linear --ic_update_type fixed` and `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_fixed_ic_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -ic_update_type fixed` to reanalyze the 251 generations, init freq = 0.25 data under the 100
+First, for every file in `data` that contains `g251_d25`, run `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_Ns100_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ns 100 --hidden_interp linear --ic_update_type fixed`, `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_linear_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output --hidden_interp linear --ic_update_type fixed` and `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_fixed_ic_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -ic_update_type fixed` to reanalyze the 251 generations, init freq = 0.25 data under the (100 linearly interpolated hidden states, 500 linearly interpolated hidden states, 500 chebyshev interpolated hidden states, and 500 chebyshev interpolated hidden states but no initial condition estimation) conditions, respectively.
+
+Then, set the parameters at the beginning of the script `file_str_boxplots.py` identical to those for Figure S.9 above, though with `file_strs = ["Ns100_", "linear_", "fixed_ic_", ""]` instead, and run it using `python file_str_boxplots.py`.
 
 ## Figure 7:
 This figure requires additional simulations. Proceed via the following:

@@ -57,8 +57,17 @@ output_dir = "output"
 ### Figure 6:
 Set the parameter `cond_only = True` at the beginning of the script `box_and_strip_plots.py` and leave the rest of the configuration the same as Figures 4A et al. above. Run it using `python box_and_strip_plots.py`. Note that this will only run successfully after `deltall_qqs_and_confusiontables.py` has been run, since the `_classified.pkl` files must be generated.
 
-### Figure 8:
-Run `python mismatched_analysis.py`. Modify the directory paths in the script if needed.
+### Figures 8A+B:
+
+Set the following parameters at the beginning of the script `mismatched_boxplots.py` and run it using `python mismatched_boxplots.py`:
+```
+data_dir = "data"
+EM_dir = "EM"
+output_dir = "output"
+```
+
+### Figures 8C+D:
+Run `python mismatched_auc_plots.py`. Modify the directory paths in the script if needed.
 
 ### Figures S.9-10:
 First, for every file in `data` that contains `g251_d25`, run `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_Ne5000_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 5000` and `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_Ne20000_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 20000` to reanalyze the 251 generations, init freq = 0.25 data under the 'incorrect' Nes.
@@ -74,6 +83,7 @@ EM_dir = "EM"
 output_dir = "output"
 
 file_strs = ["Ne5000_", "", "Ne20000_"]
+blank_name_str = "Ne10000_"
 ```
 
 To generate Figure S.10, run `python Ne_misspec_qqs.py`. Modify the directory paths in the script if needed.
@@ -81,7 +91,7 @@ To generate Figure S.10, run `python Ne_misspec_qqs.py`. Modify the directory pa
 ### Figure S.11:
 First, for every file in `data` that contains `g251_d25`, run `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_ns100_linear_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -ns 100 --hidden_interp linear --ic_update_type fixed`, `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_linear_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output --hidden_interp linear --ic_update_type fixed` and `emsel data/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_fixed_ic_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -ic_update_type fixed` to reanalyze the 251 generations, init freq = 0.25 data under the (100 linearly interpolated hidden states, 500 linearly interpolated hidden states, 500 chebyshev interpolated hidden states, and 500 chebyshev interpolated hidden states but no initial condition estimation) conditions, respectively.
 
-Then, set the parameters at the beginning of the script `file_str_boxplots.py` identical to those for Figure S.9 above, though with `file_strs = ["ns100_linear_", "linear_", "fixed_ic_", ""]` instead, and run it using `python file_str_boxplots.py`.
+Then, set the parameters at the beginning of the script `file_str_boxplots.py` identical to those for Figure S.9 above, though with `file_strs = ["ns100_linear_", "linear_", "fixed_ic_", ""]` and `blank_name_str = "standard_"` instead, and run it using `python file_str_boxplots.py`.
 
 ## Figure 7:
 This figure requires additional simulations. Proceed via the following:
@@ -99,7 +109,7 @@ First, run the pipeline in the [figures/gb_dataset/](../gb_dataset/) folder up t
 
 Next, run `emsel-sim data -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched data/GB_v54.1_capture_only_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_sample_sizes.table`. This should generate 21 files, each with "g125_dal_special" somewhere in their name.
 
-Next, for each file created, run `emsel data/{file_name}.csv EM/{file_name}_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output`.
+Next, for each file created, run `emsel data/{file_name}.csv EM/{file_name}_EM --time_after_zero --full_output`.
 
 Then:
 

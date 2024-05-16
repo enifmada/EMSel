@@ -102,7 +102,7 @@ min_sample_filter = .1
 
 Then, for each created file (there will be 22 of them, all containing "permuted"), run EMSel via the command `emsel data/GB_v54.1_capture_only_c{chr}_permuted.csv EM/GB_v54.1_capture_only_c{chr}_permuted_EM --time_after_zero --full_output --selection_modes neutral add`
 
-Lastly, set the following parameters at the beginning of the script `real_data_permutations.py` and run it using `python real_data_permutations.py`:
+Lastly, set the following parameters at the beginning of the script `plot_gb_permutations.py` and run it using `python plot_gb_permutations.py`:
 ```
 EM_dir = "EM"
 output_dir = "output"

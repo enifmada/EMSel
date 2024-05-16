@@ -11,7 +11,7 @@ data_dir = "data"
 EM_dir = "EM"
 output_dir = "output"
 genodata_type = "capture_only"
-classification_types = ["add"]#, "dom", "rec", "het"]
+classification_types = ["add", "dom", "rec", "het"]
 
 ###### DO NOT MODIFY
 
@@ -158,6 +158,10 @@ for c_type in classification_types:
                              sw_idxmax, sw_argpmax, sw_rsidmax, sw_ref, sw_alt, sw_raw_snps, sw_snps, sw_chridxmaxs, sw_genes]).T
         brown_windows = pd.DataFrame(sw_array, columns=["Sel. type", "Chr.", "Left pos.", "Right pos.", "Raw", "Post", r"$-\log_{10}p_{min}", r"$\hat{s}(p_{min})", r"ll at $s(p_{min})$", "SNP index of max.", "Chr pos of max.", "Lead SNP", "Ref.", "Alt.", "Raw_SNP_list", "Post_SNP_list", "SNP. index of max (on chr).", "Gene(s)"])
         brown_windows["Genomic region (hg19)"] = brown_windows.apply(combine_pos, axis=1)
+        brown_windows = brown_windows[["Sel. type", "Chr.", "Genomic region (hg19)", "Gene(s)", "Lead SNP", "Ref.", "Alt.",
+             "Raw", "Post", r"$-\log_{10}p_{min}", r"$\hat{s}(p_{min})",
+             r"ll at $s(p_{min})$", "SNP index of max.", "Chr pos of max.",
+             "Raw_SNP_list", "Post_SNP_list", "SNP. index of max (on chr)."]]
         brown_windows.to_latex(f"{output_dir}/{genodata_type}_{c_type}_sig_windows.tex", float_format="%.2f",
                                columns=["Chr.", "Genomic region (hg19)", "Gene(s)", "Lead SNP", "Ref.", "Alt.",
                                          "Raw", "Post", r"$-\log_{10}p_{min}", r"$\hat{s}(p_{min})"],

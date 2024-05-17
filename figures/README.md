@@ -1,4 +1,4 @@
-# Recreating main text figures
+# Recreating manuscript figures
 
 This directory contains scripts to recreate the data-derived figures in the main text and Supplementary Material of Fine and Steinrücken (2024), or generate similar plots for a dataset of your choosing. Step-by-step instructions to generate each plot can be found in the README of each subfolder.
 

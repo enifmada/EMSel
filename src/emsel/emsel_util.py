@@ -283,8 +283,8 @@ def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", th
 
     handles, labels = axins.get_legend_handles_labels()
     axs.legend(handles, labels, loc=legend_loc)
-    axs.set_xlabel("$\mathbb{E}(-\log_{10}(p))$")
-    axs.set_ylabel("$-\log_{10}(p)$")
+    axs.set_xlabel(r"$\mathbb{E}(-\log_{10}(p))$")
+    axs.set_ylabel(r"$-\log_{10}(p)$")
     axs.set_ylim([0, max_y * 1.05])
     axs.set_xlim([0, max_y * 1.05])
 

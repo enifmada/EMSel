@@ -10,10 +10,10 @@ data_dir = "data"
 EM_dir = "EM"
 output_dir = "output"
 genodata_type = "capture_only"
+classification_types = ["add", "dom", "het", "rec"]
 
 ###### DO NOT MODIFY
 chroms = range(1,23)
-classification_types = ["add", "dom", "het", "rec"]
 alpha = .05
 
 all_s = {}

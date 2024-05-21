@@ -11,11 +11,11 @@ from emsel.emsel_util import params_dict_to_str, get_1d_s_data_from_type, conver
 ####### MODIFY
 
 sel_strs = [.005, .01, .025, .05]
-num_gens_list = [101, 251, 1001]
-init_dists = [.005, .25, "recip"]
+num_gens_list = [125]
+init_dists = ["real_special"]
 
 #set to True for strip plots (e.g. Figure 6)
-cond_only = False
+cond_only = True
 
 data_dir = "data"
 EM_dir = "EM"
@@ -65,7 +65,6 @@ for n_i, num_gens in enumerate(num_gens_list):
         min_quantile = 0
         max_quantile = 0
         runtime_total = 0
-        illegal_s = 0
         for sel_type, sel_str in itprod(iter_types, sel_strs):
             if init_dist in [.005, "recip"] and sel_type == "rec":
                 continue
@@ -103,8 +102,13 @@ for n_i, num_gens in enumerate(num_gens_list):
             if cond_only:
                 with open(bh_filename, "rb") as file:
                     bf = pickle.load(file)
-                idx_list = np.where(bf["bh_classes"] == sel_types.index(sel_type))[0]
+                idx_list = np.where(bf["bh_classes"][:500] == sel_types.index(sel_type))[0]
                 num_pts = idx_list.shape[0]
+                if num_pts == 0:
+                    num_pts = 1
+                    fake_one = True
+                else:
+                    fake_one = False
             elif init_dist == "real_special":
                 num_pts = 500
                 idx_list = np.arange(num_pts)
@@ -125,15 +129,11 @@ for n_i, num_gens in enumerate(num_gens_list):
                                 s_vals.extend([10])
                                 s_types.extend(["add"])
                                 s_strs.extend(["Neutral"])
-                                subtract_one_from_first_counts = True
                         else:
                             continue
                     if run_type == "rec" and init_dist in [.005, "recip"]:
                         continue
                     exit_codes = hf[f"{run_type}_run"]["exit_codes"]
-                    illegal_s += exit_codes[exit_codes == 2].sum()
-                    illegal_s += exit_codes[exit_codes == 4].sum()
-                    illegal_s += exit_codes[exit_codes == 12].sum()
                     s_data = get_1d_s_data_from_type(hf[f"{run_type}_run"]["s_final"][:, idx_list[:num_pts]], run_type)
                     if s_data.shape[0] > 0:
                         max_quantile = max(max_quantile, np.quantile(s_data, .99))
@@ -160,13 +160,13 @@ for n_i, num_gens in enumerate(num_gens_list):
                         max_quantile = max(max_quantile, np.quantile(s_data, .99))
                         min_quantile = min(min_quantile, np.quantile(s_data, .01))
                     s_vals.extend(s_data.tolist())
+                    if cond_only and fake_one:
+                        s_vals.extend([10])
                 s_types.extend([f"{sel_type}"] * num_pts)
                 s_strs.extend([sel_str] * num_pts)
 
         s_types = convert_from_abbrevs(s_types, shortall=True)
-
         massaged_data = zip(s_vals, s_strs, s_types)
-
         s_stuff = pd.DataFrame(data=massaged_data, columns=[r"$\hat{s}$", r"True $s$", "Mode of selection"])
         if cond_only:
             box = sns.stripplot(data=s_stuff, x=r"True $s$", y=r"$\hat{s}$", hue="Mode of selection", dodge=True,ax=axs, size=2)
@@ -213,7 +213,9 @@ for n_i, num_gens in enumerate(num_gens_list):
         legend_loc = "lower right" if cond_only else "upper left"
         if not cond_only:
             axs.text(-.24, 1.01, r"$\bf{A}$", fontsize=13, transform=axs.transAxes)
-        axs.legend(loc=legend_loc, fontsize=7, labelspacing=.2, handlelength=1.5, handleheight=.5, handletextpad=.4, borderpad=.2, borderaxespad=.2, markerscale=.25 if cond_only else 1)
+        lgd = axs.legend(loc=legend_loc, fontsize=7, labelspacing=.2, handlelength=1.5, handleheight=.5, handletextpad=.4, borderpad=.2, borderaxespad=.2, markerscale=.25 if cond_only else 1)
+        for handle in lgd.legend_handles:
+            handle.set_markersize(4)
         axs.set_ylim([min_quantile, max_quantile])
         plt.savefig(f"{output_dir}/g{num_gens}_d{init_dist}_{'strip' if cond_only else 'box'}plots.pdf", format="pdf", bbox_inches="tight")
         plt.close(fig)

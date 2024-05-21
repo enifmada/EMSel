@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 ###### MODIFY
 
 data_dir = "data/bootstrap"
-output_dir = "output"
+output_dir = "output/bootstrap"
 genodata_type = "capture_only"
 
 ###### DO NOT MODIFY
@@ -49,7 +49,7 @@ for sel_type in ["add", "dom", "het", "rec"]:
         sample_times = df[chr_idx, ::3].astype(int)
         sampling_matrix = np.vstack((sample_times, num_samples)).T
         assert sampling_matrix[:, 1].sum() == num_samples.sum()
-        sel_str = float(lead_snp[r"$\hat{s}(p_{min})"])
+        sel_str = float(lead_snp[r"$\hat{s}(p_{min})$"])
         if sel_type == "het":
             if sel_str > 0:
                 true_sel_type = "over"
@@ -64,6 +64,13 @@ for sel_type in ["add", "dom", "het", "rec"]:
         pdict["init_dist"] = p_init
         params_filename = Path(f"{data_dir}/{rsid}_{sel_type}_bootstrap_pd.pkl")
         data_filename = Path(f"{data_dir}/{rsid}_{sel_type}_data.csv")
+
+
+        #HYDIN has too low initial frequency for recessive selection to work!
+        if rsid == "rs79233902" and sel_type == "rec":
+            continue
+
+        print(f"Simulating: {rsid} ({sel_type})")
 
         s1, s2 = get_sel_coeffs_from_type(true_sel_type, sel_str)
         pd["s1_true"] = s1

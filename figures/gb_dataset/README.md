@@ -21,6 +21,7 @@ data_dir = "data"
 EM_dir = "EM"
 output_dir = "output"
 genodata_type = "capture_only"
+classification_types = ["add", "dom", "het", "rec"]
 ```
 This will also generate the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files needed for the data-matched simulations (see "Figures 9-11" in the [figures/simulation](../simulation) README). The data-matched simulations, in turn, are needed to analyze the unconstrained EM and recreate Figure 14.
 
@@ -82,7 +83,7 @@ genodata_type = "capture_only"
 
 ## Figure S.16
 
-Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command. Then, rerun `python gb_figures.py` with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
+Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command. Then, rerun `python aggregate_data.py` and `python gb_figures.py`, both with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
 
 ## Figure S.21
 

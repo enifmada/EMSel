@@ -116,19 +116,19 @@ genodata_type = "capture_only"
 ## Bootstrapping confidence intervals
 
 To obtain bootstrapped confidence intervals for the estimated selection coefficients in Table 1 and Tables S.1-S.3:
-1. Create the subfolders `data/bootstrap` and `EM/bootstrap`.
+1. Create the subfolders `data/bootstrap`, `EM/bootstrap`, and `output/bootstrap`.
 2. Set the following parameters at the beginning of the script `sim_gb_bootstraps.py` and run it using `python sim_gb_bootstraps.py`:
 ```
 data_dir = "data/bootstrap"
-output_dir = "output"
+output_dir = "output/boostrap"
 genodata_type = "capture_only"
 ```
 3. For each .csv file created, run `emsel data/bootstrap/{file_name}.csv EM/{file_name}_EM --time_after_zero --full_output`
 4. Set the following parameters at the beginning of the script `compute_bootstraps.py` and run it using `python compute_bootstraps.py`:
   ```
 data_dir = "data/bootstrap"
-EM_dir = "EM/bootstrap
-output_dir = "output"
+EM_dir = "EM/bootstrap"
+output_dir = "output/bootstrap"
 genodata_type = "capture_only"
 ``` 
 This generates a set of boxplots, one for each selection mode, where the bias-corrected mean and confidence intervals for each significant SNP can be read off of its respective boxplot.

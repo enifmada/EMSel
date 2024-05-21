@@ -70,7 +70,7 @@ for chrom in chroms:
     agg_data["snp_ids"] = hf["snp_ids"]
     agg_data["a_numsamples"] = a_ns
     agg_data["a_freq"] = a_fd / a_ns
-    agg_data["a_miss"] = a_ns / hf["max_samples"]
+    agg_data["a_miss"] = 1-(a_ns / hf["max_samples"])
     agg_data["ref_allele"] = hf["ref_allele"]
     agg_data["alt_allele"] = hf["alt_allele"]
     agg_data["neutral_ll"] = neutral_ll

@@ -59,7 +59,7 @@ classification_types = ["add", "dom", "rec", "het"]
 ## Figure 14
 
 To generate this figure, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, either:
-1. Run the scripts in the "Figures 9-11" section of the [figures/simulation](../simulation) folder (everything before the "Figure 9A" header), followed by the `deltall_qqs_and_confusiontables.py` script as detailed in the "Figure 9D+10" section.
+1. Run the scripts in the "Figures 9-11" section of the [figures/simulation](../simulation) folder (everything before the "Figure 9A" header), followed by the `deltall_qqs_and_confusiontables.py` script as detailed in the "Figure 9D+10" section, then move the outputted `gengamma_params.pkl` file from `figures/simulation/output` to `data`.
 2. Move the provided `gengamma_params.pkl` file from the [sample_datasets](../../sample_datasets) folder into `data`.
 
 Then, set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:

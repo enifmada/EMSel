@@ -161,10 +161,17 @@ def main():
                 iter_hmm.init_update_type = hmm_dd["ic_update_type"]
                 iter_hmm.init_update_func, iter_hmm.init_params_to_state_func, iter_hmm.init_update_size = iter_hmm.get_init_update_func(hmm_dd["ic_update_type"])
                 res = parallel(delayed(run_one_s)(iter_hmm, hmm_data["final_data"][i], hmm_data["num_samples"][i], hmm_data["sample_times"][i], i, hmm_dd["tol"], hmm_dd["max_iter"], hmm_dd["min_init_val"], hmm_dd["min_ic"]) for i in parallel_loop)
+
+            #silly fix for SLURM issues
+            true_rp3 = [rp[3] for rp in res]
+            for r_i, rp in enumerate(res):
+                if isinstance(rp[3], np.ndarray):
+                    if rp[3].shape == (1,):
+                        true_rp3[r_i] = rp[3][0]
             hmm_dict = {
                 "s_final": np.array([rp[1] for rp in res]).T,
                 "ll_hist": np.array([rp[2] for rp in res]).T,
-                "ic_dist": np.array([rp[3] for rp in res]).T,
+                "ic_dist": np.array([true_rp3]).T,
                 "itercount_hist": np.array([rp[4] for rp in res]),
                 "exit_codes": np.array([rp[5] for rp in res]),
             }

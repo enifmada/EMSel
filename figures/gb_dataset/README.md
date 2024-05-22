@@ -26,7 +26,7 @@ classification_types = ["add", "dom", "het", "rec"]
 ```
 This will also generate the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files needed for the data-matched simulations (see "Figures 9-11" in the [figures/simulation](../simulation) README). The data-matched simulations, in turn, are needed to analyze the unconstrained EM and recreate Figure 14.
 
-## Figures 12, 13A, S.17-20, (S.23-30)A, Table 1*, Tables S.1-S.3*
+## Figures 12, 13A, S.18-20, (S.23-30)A, Table 1*, Tables S.1-S.3*
 
 Set the following parameters at the beginning of the script `gb_figures.py` and run it using `python gb_figures.py`:
 ```
@@ -58,9 +58,9 @@ genodata_type = "capture_only"
 classification_types = ["add", "dom", "rec", "het"]
 ```
 
-## Figure 14
+## Figures 14, S.17
 
-To generate this figure, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, either:
+To generate these figures, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, either:
 1. Run the scripts in the "Figures 9-11" section of the [figures/simulation](../simulation) folder (everything before the "Figure 9A" header), followed by the `deltall_qqs_and_confusiontables.py` script as detailed in the "Figure 9D+10" section, then move the outputted `gengamma_params.pkl` file from `figures/simulation/output` to `data`.
 2. Move the provided `gengamma_params.pkl` file from the [sample_datasets](../../sample_datasets) folder into `data`.
 

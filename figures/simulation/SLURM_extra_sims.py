@@ -11,7 +11,7 @@ qsub_dir = Path('qsubs')
 
 ###### DO NOT MODIFY
 extra_fnames = ["Ne5000", "Ne20000","ns100_linear", "linear", "fixed_ic"]
-extra_cmds = ["-Ne 5000", "-Ne 20000", "-ns 100 --hidden_interp linear --ic_update_type fixed",
+extra_cmds = ["-Ne 5000", "-Ne 20000", "-hs 100 --hidden_interp linear --ic_update_type fixed",
               "--hidden_interp linear --ic_update_type fixed", "--ic_update_type fixed"]
 
 def writeQsubs():

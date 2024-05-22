@@ -84,7 +84,7 @@ def writeQsubs():
                     sbatchfile = Path(qsub_dir, f"{sel_type}_s025_g251_d25_hs{hs}_EM.sbatch")
                     sbatchOutFile = Path(qsub_dir, f"{sel_type}_s025_251_d25_hs{hs}_EM.sout")
                     sbatchErrFile = Path(qsub_dir, f"{sel_type}_s025_g251_d25_hs{hs}_EM.serr")
-                    hmm_cmd = f"emsel {in_name} {out_name} --time_after_zero --full_output -maf 0 --min_sample_density 0 --num_cores {num_cores} --selection_modes {sel_type} --no_neutral -ns {hs} --progressbar"
+                    hmm_cmd = f"emsel {in_name} {out_name} --time_after_zero --full_output -maf 0 --min_sample_density 0 --num_cores {num_cores} --selection_modes {sel_type} --no_neutral -hs {hs} --progressbar"
                     if (Path(out_name).with_suffix(".csv").is_file() and Path(out_name).with_suffix(
                             ".csv").stat().st_size > 0):
                         print(f"File already exists: {out_name}! continuing.")

@@ -42,6 +42,7 @@ scatter_markersize = 2
 scatter_bh_width = .75
 complete_agg_data_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_agg_data.pkl")
 onep_classification_types = ["add", "dom", "rec", "het"]
+all_classification_types = ["add", "dom", "rec", "het", "full"]
 with open(complete_agg_data_path, "rb") as file:
     cdata = pickle.load(file)
 p_bhs = []
@@ -196,10 +197,10 @@ for c_type in classification_types:
     plt.close(fig)
 
 #qq plots
-if len(classification_types) > 1:
+if "full" in classification_types:
     fig, axs = plt.subplots(1,1,figsize=(3.1, 3.1),layout="constrained", dpi=1500)
     axins = axs.inset_axes([.67, .11, .28, .28])
-    logps = [cdata['all_p'][f'{ctype}_p'] for ctype in classification_types]
-    labels = convert_from_abbrevs(classification_types, shorthet=True)
+    logps = [cdata['all_p'][f'{ctype}_p'] for ctype in all_classification_types]
+    labels = convert_from_abbrevs(all_classification_types, shorthet=True)
     plot_qq(axs, axins, logps, labels, legend_loc="upper right", thin=True)
     fig.savefig(f"{output_dir}/{genodata_type}_all_qqs.png", format="png", bbox_inches="tight")

@@ -26,7 +26,7 @@ def main():
     parser.add_argument("-ns", "--num_samples", type=int, default=None, help="number of samples to draw at each sampling timepoint")
     parser.add_argument("-st", "--sampling_times", type=int, default=None, help="number of times to draw samples")
     parser.add_argument("-Ne", type=int, default=None, help="effective population size")
-    parser.add_argument("--data_matched", type=str, nargs=3, default=["", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
+    parser.add_argument("--data_matched", type=str, nargs=3, default=["", "", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
     parser.add_argument("--seed", type=int, default=5, help="seed")
     parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
     parser.add_argument("--no_small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")

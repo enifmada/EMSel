@@ -28,7 +28,7 @@ def main():
     parser.add_argument("-maf", "--min_allele_freq", type=float, default=0.05, help="filters out replicates with mean minor allele frequency < MAF")
     parser.add_argument("--min_sample_density", type=float, default=0.1, help="filters out replicates with fewer than (min_sample_density * max_samples) total samples")
     parser.add_argument("-nc", "--num_cores", type=int, default=1, help="number of CPU cores to parallelize over")
-    parser.add_argument("-ns", "--num_states", type=int, help="number of approx states in HMM", default=500)
+    parser.add_argument("-hs", "--hidden_states", type=int, help="number of approx states in HMM", default=500)
     parser.add_argument("--s_init", type=float, nargs=2, default=[0., 0.], help="vector of initial s value")
     parser.add_argument("-sid", "--starting_init_dist", default="uniform", help="initial initial condition to use")
     parser.add_argument("--sid_dict", nargs='*', help="initial condition dictionary")
@@ -50,7 +50,7 @@ def main():
     args = parser.parse_args()
 
     hmm_dd = {}
-    hmm_dd["approx_states"] = args.num_states
+    hmm_dd["approx_states"] = args.hidden_states
     hmm_dd["s_init"] = args.s_init
     hmm_dd["init_cond"] = args.starting_init_dist
     hmm_dd["tol"] = args.tol

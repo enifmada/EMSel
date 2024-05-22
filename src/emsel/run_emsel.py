@@ -148,6 +148,8 @@ def main():
             raise ValueError("Invalid update type specified!")
         if "neutral" not in hmm_dd["selection_modes"] and not args.no_neutral:
             hmm_dd["selection_modes"] = ["neutral", *hmm_dd["selection_modes"]]
+        if "neutral" in hmm_dd["selection_modes"] and hmm_dd["selection_modes"][0] != "neutral":
+            hmm_dd["selection_modes"].insert(0,hmm_dd["selection_modes"].pop(hmm_dd["selection_modes"].index("neutral")))
         selection_modes = hmm_dd["selection_modes"]
     for selmode_i, sel_type in enumerate(selection_modes):
         print(f"Now analyzing: {sel_type}!")

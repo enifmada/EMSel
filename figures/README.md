@@ -7,6 +7,8 @@ To run the figures scripts, additional packages are needed - they can be install
 pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel"
 ```
 
+Additionally, note that the code to recreate the figures is set up to use a SLURM-based cluster to parallelize computation. If this is not available, commands to run each analysis manually are provided, though note that this will be significantly slower.
+
 ## simulation subdirectory
 
 The subdirectory [simulation/](simulation/) contains scripts to generate the boxplots, strip plots, AUC plots, Q-Q plots, and confusion matrices found in Sections 3 and 4.2 of the manuscript, as well as Figures S.1-S.11 of the Supplementary Material.

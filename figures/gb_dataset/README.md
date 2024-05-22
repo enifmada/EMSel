@@ -11,11 +11,12 @@ pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel"
 
 Each figure and table from this section of the manuscript and Supplementary Material requires a full analysis of the GB dataset described in Section 4.1 of the main text. To do so, proceed via the following:
 
-1. Create the subfolders `data`, `EM` and `output` within this subdirectory.
+1. Create the subfolders `data`, `EM` and `output`, and `qsubs` within this subdirectory.
 2. Follow all instructions in the [extract_vcfs/](extract_vcfs/) subfolder. You should now have 44 .vcf files labelled capture_only_c{chr} and capture_SG_c{chr} for chr = (1,2,...,22) (the cX and cY files can be ignored from this point forward), as well as several additional .table files, in the extract_vcfs/extracted subfolder. In addition, step 4 of this process will have created Figures S.12-S.13.
 3. Move the contents of the `extract_vcfs/extracted` subfolder to the `data` subfolder created in step 1.
-4. For each created VCF whose filename contains `capture_only`, run EMSel via the command `emsel data/{file_name}.vcf EM/GB_v54.1_capture_only_c{chr}_EM --time_before_present --info_file data/GB_v54.1_capture_only_inds.table --info_cols Genetic_ID Date_mean -ytg 28.1 --save_csv --full_output`. Due to the size of the VCFs, this step is quite computationally expensive - we recommend running this in parallel on a cluster (using the -nc flag) and splitting the runs by selection mode. The scripts `SLURM_example.py` and `combine_split_runs.py` provide a template for submitting scripts that are parallelized and split by selection mode to a cluster and combining the results into a single file afterwards, respectively. Step 5 assumes that you have 22 files in `EM` that are named `GB_v54.1_capture_only_c{chr}_EM.pkl` for chr = (1,2,...,22).
-5. Set the following parameters at the beginning of the script `aggregate_data.py` and run it using `python aggregate_data.py`:
+4. Run `python SLURM_example.py` with `EM_dir = Path('EM')`, `data_dir = Path('data')`, and `genodata_type = "capture_only"` at the beginning of the script. Modify the other parameters to your liking. Then, run `sh meta_gb_EM.sh` to submit the jobs to the cluster. Alternatively, for each created VCF whose filename contains `capture_only`, run EMSel via the command `emsel data/{file_name}.vcf EM/GB_v54.1_capture_only_c{chr}_EM --time_before_present --info_file data/GB_v54.1_capture_only_inds.table --info_cols Genetic_ID Date_mean -ytg 28.1 --save_csv --full_output`. Step 6 assumes that you have 22 files in `EM` that are named `GB_v54.1_capture_only_c{chr}_EM.pkl` for chr = (1,2,...,22).
+5. Run `python combine_split_runs.py`, with `EM_dir = "EM"` at the beginning of the script. 
+6. Set the following parameters at the beginning of the script `aggregate_data.py` and run it using `python aggregate_data.py`:
 ```
 data_dir = "data"
 EM_dir = "EM"
@@ -83,7 +84,7 @@ genodata_type = "capture_only"
 
 ## Figure S.16
 
-Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command. Then, rerun `python aggregate_data.py` and `python gb_figures.py`, both with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
+Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command if you are not using the SLURM script. Then, rerun `python aggregate_data.py` and `python gb_figures.py`, both with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
 
 ## Figure S.21
 
@@ -104,7 +105,7 @@ MAF_filter = .05
 min_sample_filter = .1
 ```
 
-Then, for each created file (there will be 22 of them, all containing "permuted"), run EMSel via the command `emsel data/GB_v54.1_capture_only_c{chr}_permuted.csv EM/GB_v54.1_capture_only_c{chr}_permuted_EM --time_after_zero --full_output --selection_modes neutral add`
+Then, for each created file (there will be 22 of them, all containing "permuted"), run `python SLURM_example.py` with the same parameters as the "All figures" section, submit the jobs using `sh meta_gb_em.sh`, and combine the runs afterwards with `python combine_split_runs.py`. Or, run EMSel via the command `emsel data/GB_v54.1_capture_only_c{chr}_permuted.csv EM/GB_v54.1_capture_only_c{chr}_permuted_EM --time_after_zero --full_output --selection_modes neutral add`
 
 Lastly, set the following parameters at the beginning of the script `plot_gb_permutations.py` and run it using `python plot_gb_permutations.py`:
 ```
@@ -123,8 +124,9 @@ data_dir = "data/bootstrap"
 output_dir = "output/boostrap"
 genodata_type = "capture_only"
 ```
-3. For each .csv file created, run `emsel data/bootstrap/{file_name}.csv EM/{file_name}_EM --time_after_zero --full_output`
-4. Set the following parameters at the beginning of the script `compute_bootstraps.py` and run it using `python compute_bootstraps.py`:
+3. Run `python SLURM_example.py` with `EM_dir = Path('EM/bootstrap')` and `data_dir = Path('data/bootstrap')` at the beginning of the script. Submit the jobs by running `sh meta_gb_EM.sh`. Alternatively, For each .csv file created, run `emsel data/bootstrap/{file_name}.csv EM/{file_name}_EM --time_after_zero --full_output`
+4. Run `python combine_split_runs.py` with `EM_dir = "EM/bootstrap"` at the beginning of the script.
+5. Set the following parameters at the beginning of the script `compute_bootstraps.py` and run it using `python compute_bootstraps.py`:
   ```
 data_dir = "data/bootstrap"
 EM_dir = "EM/bootstrap"

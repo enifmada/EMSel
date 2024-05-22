@@ -1,8 +1,8 @@
 from pathlib import Path
 
 ###### MODIFY
-EM_dir = Path('EM')
-data_dir = Path('data')
+EM_dir = Path('EM/param_variation')
+data_dir = Path('data/param_variation')
 
 qsub_dir = Path('qsubs')
 max_run_hours = 10
@@ -50,7 +50,11 @@ def writeQsubs():
                         sbatchfile = Path(qsub_dir, f"{fpath.name.rpartition('_')[0]}_EM.sbatch")
                         sbatchOutFile = Path(qsub_dir, f"{fpath.name.rpartition('_')[0]}_EM.sout")
                         sbatchErrFile = Path(qsub_dir, f"{fpath.name.rpartition('_')[0]}_EM.serr")
-                        hmm_cmd = f"emsel {fpath} {out_name} --time_after_zero --full_output -maf 0 --min_sample_density 0 --num_cores {num_cores} --selection_modes all --progressbar"
+                        if "param_variation" in data_dir.name:
+                            sel_mode = fpath.name.split("_")[0]
+                            hmm_cmd = f"emsel {fpath} {out_name} --time_after_zero --full_output -maf 0 --min_sample_density 0 --num_cores {num_cores} --selection_modes {sel_mode} --no_neutral --progressbar"
+                        else:
+                            hmm_cmd = f"emsel {fpath} {out_name} --time_after_zero --full_output -maf 0 --min_sample_density 0 --num_cores {num_cores} --selection_modes all --progressbar"
                     if (Path(out_name).with_suffix(".csv").is_file() and Path(out_name).with_suffix(".csv").stat().st_size > 0):
                         print(f"File already exists: {out_name}! continuing.")
                         continue

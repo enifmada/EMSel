@@ -11,11 +11,11 @@ from emsel.emsel_util import params_dict_to_str, get_1d_s_data_from_type, conver
 ####### MODIFY
 
 sel_strs = [.005, .01, .025, .05]
-num_gens_list = [125]
-init_dists = ["real_special"]
+num_gens_list = [101, 251, 1001]
+init_dists = [.005, .25, "recip"]
 
 #set to True for strip plots (e.g. Figure 6)
-cond_only = True
+cond_only = False
 
 data_dir = "data"
 EM_dir = "EM"
@@ -49,6 +49,12 @@ iter_types = cond_types if cond_only else sel_types
 
 for n_i, num_gens in enumerate(num_gens_list):
      for d_i, init_dist in enumerate(init_dists):
+        if init_dist in [.005, "recip"] and not cond_only:
+            colorlist = ["#1D6996", coolormap(1), colors[3], colors[4]]
+            plt.rcParams["axes.prop_cycle"] = cycler(color=colorlist)
+        else:
+            colorlist = init_colorlist
+            plt.rcParams["axes.prop_cycle"] = cycler(color=init_colorlist)
         fig, axs = plt.subplots(1, 1, figsize=(3.1, 3.1), layout="constrained")
         if init_dist == "recip":
             ic_str = "1/x"
@@ -214,8 +220,9 @@ for n_i, num_gens in enumerate(num_gens_list):
         if not cond_only:
             axs.text(-.24, 1.01, r"$\bf{A}$", fontsize=13, transform=axs.transAxes)
         lgd = axs.legend(loc=legend_loc, fontsize=7, labelspacing=.2, handlelength=1.5, handleheight=.5, handletextpad=.4, borderpad=.2, borderaxespad=.2, markerscale=.25 if cond_only else 1)
-        for handle in lgd.legend_handles:
-            handle.set_markersize(4)
+        if cond_only:
+            for handle in lgd.legend_handles:
+                handle.set_markersize(4)
         axs.set_ylim([min_quantile, max_quantile])
         plt.savefig(f"{output_dir}/g{num_gens}_d{init_dist}_{'strip' if cond_only else 'box'}plots.pdf", format="pdf", bbox_inches="tight")
         plt.close(fig)

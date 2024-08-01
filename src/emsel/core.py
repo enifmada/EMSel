@@ -13,7 +13,6 @@ class HMM:
         assert num_approx >= 0
         self.ZERO_ALLELE_TOLERANCE = 0
         self.init_cond = init_cond
-        self.custom_init_cond = False
         self.N = num_approx
         self.hidden_interp = hidden_interp
         self.Ne = Ne
@@ -34,7 +33,7 @@ class HMM:
         self.a = self.calc_transition_probs_old([self.s1, self.s2])
         assert np.all(np.isclose(np.sum(self.a, axis=1), 1))
         self.a_init = self.a.copy()
-        if self.init_cond == "uniform":
+        if self.init_cond == "uniform" or self.init_cond == "data_mean":
             if hidden_interp == "chebyshev":
                 pre_istate = np.diff(self.bounds)
                 self.init_state = pre_istate/np.sum(pre_istate)
@@ -463,7 +462,7 @@ class HMM:
         print(f"{loc} Max iterations exceeded without convergence. Stopping.")
         return s_hist, [self.s1, self.s2], ll_hist, self.init_params, itercount-1, 9
 
-    def compute_s(self, obs_counts, nts, sample_times, update_type, init_update_type, tol, max_iter, progressbar=True, min_init_val=1e-8, **update_args):
+    def compute_s(self, obs_counts, nts, sample_times, update_type, init_update_type, tol, max_iter, progressbar=True, data_mean=False, min_init_val=1e-8, **update_args):
         self.num_replicates = obs_counts.shape[0]
         self.update_type = update_type
         self.init_update_type = init_update_type
@@ -481,8 +480,11 @@ class HMM:
         loop_idxs = tqdm(range(self.num_replicates)) if progressbar else range(self.num_replicates)
         for i in loop_idxs:
             self.update_internals_from_datum(obs_counts[i], nts[i], sample_times[i])
-            if self.custom_init_cond:
-                self.init_state = self.init_cond[i, :]
+            if data_mean:
+                mean_freq = np.sum(obs_counts[i]) / np.sum(nts[i])
+                temp_init_state = np.zeros_like(self.init_state) + min_init_val
+                temp_init_state[np.clip(np.argmin(np.abs(self.gs - mean_freq)), 1, self.N - 2)] = 1.
+                self.init_state = temp_init_state / np.sum(temp_init_state)
             else:
                 self.init_state = np.copy(self.init_init_state)
             self.s1 = self.s1_init

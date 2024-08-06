@@ -5,8 +5,9 @@ from matplotlib.ticker import StrMethodFormatter
 from numba import njit
 from scipy.stats import chi2, beta
 from copy import deepcopy
+from typing import Union
 
-def generate_wf_data(p: float, N: int, N_samples: int, s1: int, s2: int, num_gens: int, sample_locs, seed: int):
+def generate_wf_data(p: float, N: Union[int, np.ndarray], N_samples: int, s1: float, s2: float, num_gens: int, sample_locs, seed: int):
     rng = np.random.default_rng(seed=seed)
     freqs = np.zeros(num_gens)
     nt = np.zeros(int(num_gens), dtype=int)
@@ -27,13 +28,18 @@ def generate_wf_data(p: float, N: int, N_samples: int, s1: int, s2: int, num_gen
     true_data = freqs
     return samples, true_data
 
-def generate_multiple_wf_data(p, N, N_samples, s1, s2, num_gens, sample_locs, seed, small_s=False):
+def generate_multiple_wf_data(p: float, N: Union[int, np.ndarray], N_samples: int, s1: float, s2: float, num_gens: int, sample_locs, seed: int, small_s=False):
+    if isinstance(N, int):
+        N_array = np.zeros(num_gens) + N
+    else:
+        assert N.shape == (num_gens,)
+        N_array = N
     rng = np.random.default_rng(seed=seed)
     freqs = np.zeros((p.shape[0], num_gens))
     freqs[:, 0] = p
     nt = np.zeros_like(sample_locs)+N_samples
     for i in np.arange(num_gens - 1):
-        freqs[:, i + 1] = forward_one_gen(freqs[:, i], N, s1, s2, rng, small_s)
+        freqs[:, i + 1] = forward_one_gen(freqs[:, i], N_array[i], s1, s2, rng, small_s)
         if np.all(freqs[:, i+1] <= 0):
             all_obs_counts = rng.binomial(nt, freqs[:, sample_locs])
             return all_obs_counts, freqs

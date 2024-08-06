@@ -26,11 +26,12 @@ def main():
     parser.add_argument("-ns", "--num_samples", type=int, default=None, help="number of samples to draw at each sampling timepoint")
     parser.add_argument("-st", "--sampling_times", type=int, default=None, help="number of times to draw samples")
     parser.add_argument("-Ne", type=int, default=None, help="effective population size")
-    parser.add_argument("--data_matched", type=str, nargs=3, default=["", "", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
+    parser.add_argument("--data_matched", type=str, nargs=3, default=["", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
     parser.add_argument("--seed", type=int, default=5, help="seed")
     parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
     parser.add_argument("--no_small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")
     parser.add_argument("--suffix", type=str, default="", help="file names suffix to differentiate")
+    parser.add_argument("--secret_sauce", type=str, default="", help="hehehe")
     args = parser.parse_args()
 
     if args.Ne is not None:
@@ -72,6 +73,11 @@ def main():
         "Ne": args.Ne,
         "num_sims": args.num_sims,
     }
+
+    if args.secret_sauce != "":
+        Nes_array = np.loadtxt(args.secret_sauce)
+        pd["Ne"] = Nes_array[:, 1][::-1]
+        print(pd["Ne"])
 
     if args.data_matched[0] != "":
         sampling_matrix = np.loadtxt(Path(f"{args.data_matched[2]}"), skiprows=1, dtype=int)

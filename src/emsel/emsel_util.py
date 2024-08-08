@@ -135,6 +135,11 @@ def generate_data(pd):
                     maf_mask = min_fd > total_ns * pd["means_array"][0]
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
 
+                    if isinstance(pd["Ne"], np.ndarray):
+                        fortypercentmask = np.sum(temp_nts, axis=1)/np.sum(nts, axis=1) > .4
+                        print(np.sum(fortypercentmask)/fortypercentmask.shape[0])
+                        all_mask = fortypercentmask & all_mask
+
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                     temp_samples = temp_samples_ms
                 else:

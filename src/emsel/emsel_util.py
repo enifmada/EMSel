@@ -136,7 +136,7 @@ def generate_data(pd):
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
 
                     if isinstance(pd["Ne"], np.ndarray):
-                        fortypercentmask = np.sum(temp_nts, axis=1)/nt > .4
+                        fortypercentmask = np.sum(temp_nts, axis=1)/np.sum(nt) > .4
                         print(np.sum(fortypercentmask)/fortypercentmask.shape[0])
                         all_mask = fortypercentmask & all_mask
 

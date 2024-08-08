@@ -139,6 +139,7 @@ def generate_data(pd):
                         fortypercentmask = np.sum(temp_nts, axis=1)/np.sum(nt) > .4
                         print(np.sum(fortypercentmask)/fortypercentmask.shape[0])
                         all_mask = fortypercentmask & all_mask
+                        print(f"Pre-missingness: {np.mean(temp_samples):.4f} avg. samples. Post: {np.mean(hits_missing[all_mask, :]):.4f}")
 
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                     temp_samples = temp_samples_ms

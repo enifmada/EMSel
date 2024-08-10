@@ -158,7 +158,7 @@ def generate_data(pd):
                     total_ns = np.sum(temp_samples, axis=1)
 
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
-                    maf_mask = min_fd > total_ns * .05
+                    maf_mask = min_fd > total_ns * pd["means_array"][0]
                     all_mask = maf_mask
             elif "real_data_matrix" in pd:
                 temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
@@ -167,7 +167,9 @@ def generate_data(pd):
                 for repl in np.arange(temp_true_data.shape[0]):
                     temp_freqs[repl, :] = temp_true_data[repl, temp_st_matrix[repl, :]]
                 temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_freqs)
+		
 
+                assert np.all(temp_real_samples <= temp_nts)
                 total_fd = np.sum(temp_real_samples, axis=1)
                 total_ns = np.sum(temp_nts, axis=1)
 

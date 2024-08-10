@@ -130,7 +130,7 @@ def generate_data(pd):
                     hits_missing = outer_rng.binomial(temp_samples, 1 - missingness_vals[:, np.newaxis],size=temp_samples.shape)
                     misses_missing = outer_rng.binomial(nt - temp_samples,1 - missingness_vals[:, np.newaxis],size=temp_samples.shape)
                     assert np.all(hits_missing + misses_missing <= nt)
-                    print(f"Pre-missingness: {np.mean(temp_samples):.4f} avg. samples. Post: {np.mean(hits_missing):.4f}")
+                    print(f"Pre-missingness: {np.mean(temp_samples):.4f} avg. hits. Post: {np.mean(hits_missing):.4f}")
 
                     temp_nts = hits_missing + misses_missing
                     temp_samples_ms = hits_missing
@@ -145,10 +145,10 @@ def generate_data(pd):
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
 
                     if "lowmiss" in pd:
-                        missmask = np.sum(temp_nts, axis=1)/np.sum(nt) > pd["lowmiss"]
+                        missmask = np.sum(temp_nts, axis=1)/np.sum(nt) > 1-pd["lowmiss"]
                         print(np.sum(missmask)/missmask.shape[0])
                         all_mask = missmask & all_mask
-                        print(f"Pre-missingness: {np.mean(temp_samples):.4f} avg. samples. Post: {np.mean(hits_missing[all_mask, :]):.4f}")
+                        print(f"Pre-lowmiss: {np.mean(temp_nts):.4f} avg. samples. Post: {np.mean(temp_nts[all_mask, :]):.4f}")
 
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                     temp_samples = temp_samples_ms
@@ -177,11 +177,11 @@ def generate_data(pd):
 
                 if "lowmiss" in pd:
                     # bad magic value reference, fix this later
-                    missmask = np.sum(temp_nts, axis=1) / 504 > pd["lowmiss"]
+                    missmask = np.sum(temp_nts, axis=1) / 504 > 1-pd["lowmiss"]
                     print(f"Fraction accepted: {np.sum(missmask) / missmask.shape[0]}")
                     all_mask = missmask & all_mask
                     print(
-                        f"Pre-missingness: {np.mean(temp_real_samples):.4f} avg. samples. Post: {np.mean(temp_real_samples[all_mask, :]):.4f}")
+                        f"Pre-lowmiss: {np.mean(temp_nts):.4f} avg. samples. Post: {np.mean(temp_nts[all_mask, :]):.4f}")
 
                 temp_samples = temp_real_samples
                 full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))

@@ -163,7 +163,11 @@ def generate_data(pd):
                 temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
                 print(temp_nts.shape)
                 print(temp_st_matrix.shape)
-                temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_true_data[temp_st_matrix])
+                temp_freqs = np.zeros((temp_true_data.shape[0], temp_st_matrix.shape[1]))
+                for repl in np.arange(temp_true_data.shape[0]):
+                    temp_freqs[repl, :] = temp_true_data[repl, temp_st_matrix[repl, :]]
+                print(temp_freqs[:3])
+                temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_freqs)
 
                 total_fd = np.sum(temp_real_samples, axis=1)
                 total_ns = np.sum(temp_nts, axis=1)

@@ -83,7 +83,7 @@ def generate_data(pd):
     elif "real_data_matrix" in pd:
         nt = pd["real_data_matrix"][0, 1::3]
         sample_times = pd["real_data_matrix"].shape[1]//3
-        sample_lcos = pd["real_data_matrix"][0, ::3]
+        sample_locs = pd["real_data_matrix"][0, ::3]
     else:
         nt = np.zeros(int(pd["sample_times"]), dtype=int) + pd["num_samples"]
         sample_times = pd["sample_times"]

@@ -76,6 +76,7 @@ def forward_one_gen(p_vector, pop_size, s1, s2, rng, small_s=False):
 
 
 def generate_data(pd):
+    data_matched_flag = True
     if "sampling_matrix" in pd:
         nt = pd["sampling_matrix"][:, 1]
         sample_times = pd["sampling_matrix"].shape[0]
@@ -87,6 +88,7 @@ def generate_data(pd):
         sample_locs = pd["real_data_matrix"][0, ::3]
         full_nts = np.zeros((1, sample_times))
     else:
+        data_matched_flag = False
         nt = np.zeros(int(pd["sample_times"]), dtype=int) + pd["num_samples"]
         sample_times = pd["sample_times"]
         sample_locs = np.linspace(0, int(pd["num_gens"]) - 1, sample_times, dtype=int)
@@ -162,15 +164,11 @@ def generate_data(pd):
                     all_mask = maf_mask
             elif "real_data_matrix" in pd:
                 temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
-                print(temp_st_matrix[:3])
                 temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
-                print(temp_nts[:3])
                 temp_freqs = np.zeros((temp_true_data.shape[0], temp_st_matrix.shape[1]))
                 for repl in np.arange(temp_true_data.shape[0]):
                     temp_freqs[repl, :] = temp_true_data[repl, temp_st_matrix[repl, :]]
                 temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_freqs)
-                print(temp_freqs[:3])
-                print(temp_real_samples[:3])
 
                 assert np.all(temp_real_samples <= temp_nts)
                 total_fd = np.sum(temp_real_samples, axis=1)
@@ -206,8 +204,6 @@ def generate_data(pd):
             full_samples = np.vstack((full_samples, temp_samples[all_mask, :]))
             full_true_data = np.vstack((full_true_data, temp_true_data[all_mask, :]))
             p_inits = np.hstack((p_inits, p[all_mask]))
-            print(full_samples.shape)
-            print(full_nts.shape)
         else:
             full_samples = np.vstack((full_samples, temp_samples))
             full_true_data = np.vstack((full_true_data, temp_true_data))
@@ -223,7 +219,7 @@ def generate_data(pd):
     data_dict = {
         "obs_counts": full_samples[1:pd["num_sims"]+1, :],
         "true_data": full_true_data[1:pd["num_sims"]+1, :],
-        "nt": full_nts[1:pd["num_sims"]+1, :] if "sampling_matrix" in pd else nt,
+        "nt": full_nts[1:pd["num_sims"]+1, :] if data_matched_flag else nt,
         "sample_times": full_num_samples if full_num_samples else sample_times,
         "sample_locs": full_sample_locs if full_sample_locs else sample_locs,
         "p_inits": p_inits[1:pd["num_sims"]+1],

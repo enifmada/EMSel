@@ -111,7 +111,7 @@ def generate_data(pd):
             p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["means_array"][1:], size=samples_per_run, replace=True)
         elif pd["init_cond"] == "real_matched":
             matched_idxs = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(pd["real_data_matrix"].shape[0]), size=samples_per_run, replace=True)
-            p = pd["means_array"][matched_idxs]
+            p = pd["means_array"][1:][matched_idxs]
         elif pd["init_cond"] == "recip":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, 2*pd["Ne"])/(2*pd["Ne"]), size=samples_per_run, p=weights)
         else:
@@ -171,6 +171,7 @@ def generate_data(pd):
 
                     temp_samples = temp_real_samples
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
+                    print(all_mask.sum())
                 else:
                     total_fd = np.sum(nt)
                     total_ns = np.sum(temp_samples, axis=1)

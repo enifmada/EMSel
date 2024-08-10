@@ -80,6 +80,10 @@ def generate_data(pd):
         nt = pd["sampling_matrix"][:, 1]
         sample_times = pd["sampling_matrix"].shape[0]
         sample_locs = pd["sampling_matrix"][:, 0]
+    elif "real_data_matrix" in pd:
+        nt = pd["real_data_matrix"][0, 1::3]
+        sample_times = pd["real_data_matrix"].shape[1]//3
+        sample_lcos = pd["real_data_matrix"][0, ::3]
     else:
         nt = np.zeros(int(pd["sample_times"]), dtype=int) + pd["num_samples"]
         sample_times = pd["sample_times"]
@@ -105,6 +109,9 @@ def generate_data(pd):
             p = np.zeros(samples_per_run)+pd["p_init"]
         elif pd["init_cond"] == "real_special":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["means_array"][1:], size=samples_per_run, replace=True)
+        elif pd["init_cond"] == "real_matched":
+            matched_idxs = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(pd["real_data_matrix"].shape[0]), size=samples_per_run, replace=True)
+            p = pd["means_array"][matched_idxs]
         elif pd["init_cond"] == "recip":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, 2*pd["Ne"])/(2*pd["Ne"]), size=samples_per_run, p=weights)
         else:
@@ -135,14 +142,35 @@ def generate_data(pd):
                     maf_mask = min_fd > total_ns * pd["means_array"][0]
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
 
-                    if isinstance(pd["Ne"], np.ndarray) or pd["seed"] > 10000:
-                        fortypercentmask = np.sum(temp_nts, axis=1)/np.sum(nt) > .4
-                        print(np.sum(fortypercentmask)/fortypercentmask.shape[0])
-                        all_mask = fortypercentmask & all_mask
+                    if "lowmiss" in pd:
+                        missmask = np.sum(temp_nts, axis=1)/np.sum(nt) > pd["lowmiss"]
+                        print(np.sum(missmask)/missmask.shape[0])
+                        all_mask = missmask & all_mask
                         print(f"Pre-missingness: {np.mean(temp_samples):.4f} avg. samples. Post: {np.mean(hits_missing[all_mask, :]):.4f}")
 
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                     temp_samples = temp_samples_ms
+                elif "real_data_matrix" in pd:
+                    temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
+                    temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
+                    temp_real_samples = np.random.default_rng(pd["seed"]+trial_num).binomial(temp_nts, temp_true_data[temp_st_matrix])
+
+                    total_fd = np.sum(temp_real_samples, axis=1)
+                    total_ns = np.sum(temp_nts, axis=1)
+
+                    min_fd = np.minimum(total_fd, total_ns - total_fd)
+                    maf_mask = min_fd > total_ns * pd["means_array"][0]
+                    all_mask = maf_mask
+
+                    if "lowmiss" in pd:
+                        #bad magic value reference, fix this later
+                        missmask = np.sum(temp_nts, axis=1)/504 > pd["lowmiss"]
+                        print(np.sum(missmask)/missmask.shape[0])
+                        all_mask = missmask & all_mask
+                        print(f"Pre-missingness: {np.mean(temp_real_samples):.4f} avg. samples. Post: {np.mean(temp_real_samples[all_mask, :]):.4f}")
+
+                    temp_samples = temp_real_samples
+                    full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                 else:
                     total_fd = np.sum(nt)
                     total_ns = np.sum(temp_samples, axis=1)

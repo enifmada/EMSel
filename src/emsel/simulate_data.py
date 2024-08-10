@@ -26,12 +26,15 @@ def main():
     parser.add_argument("-ns", "--num_samples", type=int, default=None, help="number of samples to draw at each sampling timepoint")
     parser.add_argument("-st", "--sampling_times", type=int, default=None, help="number of times to draw samples")
     parser.add_argument("-Ne", type=int, default=None, help="effective population size")
-    parser.add_argument("--data_matched", type=str, nargs=3, default=["", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
+    datamatching = parser.add_mutually_exclusive_group()
+    datamatching.add_argument("--data_matched", type=str, nargs=3, default=["", "", ""], help="input the path to means + missingness .txt files + sampling .table, will override -g, -ic, -ns and -st to initialize and sample according to the table")
+    datamatching.add_argument("--fully_data_matched", type=str, nargs=2, default=["", ""], help="input the path to a means .txt file + real data matrix, will override -g, -ic, -ns and -st to initialize and sample according to the data matrix")
     parser.add_argument("--seed", type=int, default=5, help="seed")
     parser.add_argument("--save_plots", action="store_true", help="save plots of all of the replicate trajectories")
     parser.add_argument("--no_small_s", action="store_true", help="whether or not to use the small s approximation in the WF update")
     parser.add_argument("--suffix", type=str, default="", help="file names suffix to differentiate")
-    parser.add_argument("--secret_sauce", type=str, default="", help="hehehe")
+    parser.add_argument("--vary_Ne", type=str, default="", help="input the path to a .txt file containing a list of Nes to use instead of a constant Ne")
+    parser.add_argument("--lowmiss", type=float, help="subset the data to only replicates with a low missingness fraction (only applies to --data_matched and --fully_data_matched)")
     args = parser.parse_args()
 
     if args.Ne is not None:
@@ -63,6 +66,8 @@ def main():
     args_dict["ic_list"] = args.init_conds
     args_dict["seed"] = args.seed
     args_dict["small_s"] = False if args.no_small_s else True
+    if args.lowmiss is not None:
+        args_dict["lowmiss"] = args.lowmiss
 
     if args.suffix != "":
         args.suffix = args.suffix + "_"
@@ -74,10 +79,8 @@ def main():
         "num_sims": args.num_sims,
     }
 
-    if args.secret_sauce != "":
-        Nes_array = np.loadtxt(args.secret_sauce)
-        pd["Ne"] = Nes_array[:, 1][::-1]
-        print(pd["Ne"])
+    if args.varying_Ne != "":
+        pd["Ne"] = np.loadtxt(args.varying_Ne)
 
     if args.data_matched[0] != "":
         sampling_matrix = np.loadtxt(Path(f"{args.data_matched[2]}"), skiprows=1, dtype=int)
@@ -94,6 +97,16 @@ def main():
         args_dict["means_path"] = args.data_matched[0]
         args_dict["missingness_path"] = args.data_matched[1]
         args_dict["table_path"] = args.data_matched[2]
+    elif args.fully_data_matched[0] != "":
+        means_file = np.loadtxt(args.fully_data_matched[0])
+        if means_file[0] != .05:
+            print("WARNING: first value of means file is not 0.05 - may not be a MAF filter")
+        real_data_matrix = np.loadtxt(args.fully_data_matched[1], delimiter="\t", dtype=int)
+
+        args_dict["g_list"] = real_data_matrix[0, -3] + 1
+        args_dict["ic_list"] = ["real_matched"]
+        args_dict["means_path"] = args.fully_data_matched[0]
+        args_dict["matrix_path"] = args.fully_data_matched[1]
 
     temp_seed = args_dict["seed"]
     save_path_end = "" if args.suffix == "" else f"_{args.suffix[:-1]}"
@@ -133,6 +146,8 @@ def main():
             pd["survive_only"] = True
             pd["sel_type"] = sel_type
             pd["small_s"] = args_dict["small_s"]
+            if "lowmiss" in args_dict:
+                pd["lowmiss"] = args_dict["lowmiss"]
             if args.data_matched[0] == "":
                 pd["init_cond"] = "recip" if init_dist == "recip" else "delta"
             else:
@@ -142,6 +157,9 @@ def main():
                 pd["means_array"] = means_file
                 pd["missingness_array"] = missingness_file
                 pd["sampling_matrix"] = sampling_matrix
+            elif args.fully_data_matched[0] != "":
+                pd["means_array"] = means_file
+                pd["real_data_matrix"] = real_data_matrix
 
             if sel_type == "neutral":
                 if neutral_done:
@@ -183,7 +201,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
 
 

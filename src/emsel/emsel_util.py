@@ -206,6 +206,8 @@ def generate_data(pd):
             full_samples = np.vstack((full_samples, temp_samples[all_mask, :]))
             full_true_data = np.vstack((full_true_data, temp_true_data[all_mask, :]))
             p_inits = np.hstack((p_inits, p[all_mask]))
+            print(full_samples.shape)
+            print(full_nts.shape)
         else:
             full_samples = np.vstack((full_samples, temp_samples))
             full_true_data = np.vstack((full_true_data, temp_true_data))

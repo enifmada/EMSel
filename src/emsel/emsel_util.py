@@ -80,15 +80,17 @@ def generate_data(pd):
         nt = pd["sampling_matrix"][:, 1]
         sample_times = pd["sampling_matrix"].shape[0]
         sample_locs = pd["sampling_matrix"][:, 0]
+        full_nts = np.zeros((1, sample_times))
     elif "real_data_matrix" in pd:
         nt = pd["real_data_matrix"][0, 1::3]
         sample_times = pd["real_data_matrix"].shape[1]//3
         sample_locs = pd["real_data_matrix"][0, ::3]
+        full_nts = np.zeros((1, sample_times))
     else:
         nt = np.zeros(int(pd["sample_times"]), dtype=int) + pd["num_samples"]
         sample_times = pd["sample_times"]
         sample_locs = np.linspace(0, int(pd["num_gens"]) - 1, sample_times, dtype=int)
-    full_nts = [] if "sampling_matrix" not in pd else np.zeros((1, sample_times))
+        full_nts = []
     full_num_samples = []
     full_sample_locs = []
     p_inits = np.zeros(1,)
@@ -161,12 +163,9 @@ def generate_data(pd):
             elif "real_data_matrix" in pd:
                 temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
                 temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
-                print(temp_nts.shape)
-                print(temp_st_matrix.shape)
                 temp_freqs = np.zeros((temp_true_data.shape[0], temp_st_matrix.shape[1]))
                 for repl in np.arange(temp_true_data.shape[0]):
                     temp_freqs[repl, :] = temp_true_data[repl, temp_st_matrix[repl, :]]
-                print(temp_freqs[:3])
                 temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_freqs)
 
                 total_fd = np.sum(temp_real_samples, axis=1)

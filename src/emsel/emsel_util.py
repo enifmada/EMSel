@@ -110,7 +110,7 @@ def generate_data(pd):
         elif pd["init_cond"] == "real_special":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["means_array"][1:], size=samples_per_run, replace=True)
         elif pd["init_cond"] == "real_matched":
-            matched_idxs = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(pd["real_data_matrix"].shape[0]), size=samples_per_run, replace=True)
+            matched_idxs = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(pd["real_data_matrix"].shape[0]), size=samples_per_run, replace=True).flatten()
             p = pd["means_array"][1:][matched_idxs]
         elif pd["init_cond"] == "recip":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, 2*pd["Ne"])/(2*pd["Ne"]), size=samples_per_run, p=weights)
@@ -161,8 +161,9 @@ def generate_data(pd):
             elif "real_data_matrix" in pd:
                 temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
                 temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
-                temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_true_data[
-                    temp_st_matrix])
+                print(temp_nts.shape)
+                print(temp_st_matrix.shape)
+                temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_true_data[temp_st_matrix])
 
                 total_fd = np.sum(temp_real_samples, axis=1)
                 total_ns = np.sum(temp_nts, axis=1)

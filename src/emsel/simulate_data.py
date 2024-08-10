@@ -79,8 +79,8 @@ def main():
         "num_sims": args.num_sims,
     }
 
-    if args.varying_Ne != "":
-        pd["Ne"] = np.loadtxt(args.varying_Ne)
+    if args.vary_Ne != "":
+        pd["Ne"] = np.loadtxt(args.vary_Ne)
 
     if args.data_matched[0] != "":
         sampling_matrix = np.loadtxt(Path(f"{args.data_matched[2]}"), skiprows=1, dtype=int)

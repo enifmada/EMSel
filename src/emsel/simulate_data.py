@@ -103,7 +103,7 @@ def main():
             print("WARNING: first value of means file is not 0.05 - may not be a MAF filter")
         real_data_matrix = np.loadtxt(args.fully_data_matched[1], delimiter="\t", dtype=int)
 
-        args_dict["g_list"] = real_data_matrix[0, -3] + 1
+        args_dict["g_list"] = [real_data_matrix[0, -3] + 1]
         args_dict["ic_list"] = ["real_matched"]
         args_dict["means_path"] = args.fully_data_matched[0]
         args_dict["matrix_path"] = args.fully_data_matched[1]

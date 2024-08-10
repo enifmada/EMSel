@@ -148,11 +148,12 @@ def main():
             pd["small_s"] = args_dict["small_s"]
             if "lowmiss" in args_dict:
                 pd["lowmiss"] = args_dict["lowmiss"]
-            if args.data_matched[0] == "":
-                pd["init_cond"] = "recip" if init_dist == "recip" else "delta"
-            else:
+            if args.data_matched[0] != "":
                 pd["init_cond"] = "real_special"
-
+            elif args.fully_data_matched[0] != "":
+                pd["init_cond"] = "real_matched"
+            else:
+                pd["init_cond"] = "recip" if init_dist == "recip" else "delta"
             if args.data_matched[0] != "":
                 pd["means_array"] = means_file
                 pd["missingness_array"] = missingness_file

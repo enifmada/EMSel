@@ -150,28 +150,7 @@ def generate_data(pd):
 
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                     temp_samples = temp_samples_ms
-                elif "real_data_matrix" in pd:
-                    temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
-                    temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
-                    temp_real_samples = np.random.default_rng(pd["seed"]+trial_num).binomial(temp_nts, temp_true_data[temp_st_matrix])
 
-                    total_fd = np.sum(temp_real_samples, axis=1)
-                    total_ns = np.sum(temp_nts, axis=1)
-
-                    min_fd = np.minimum(total_fd, total_ns - total_fd)
-                    maf_mask = min_fd > total_ns * pd["means_array"][0]
-                    all_mask = maf_mask
-
-                    if "lowmiss" in pd:
-                        #bad magic value reference, fix this later
-                        missmask = np.sum(temp_nts, axis=1)/504 > pd["lowmiss"]
-                        print(np.sum(missmask)/missmask.shape[0])
-                        all_mask = missmask & all_mask
-                        print(f"Pre-missingness: {np.mean(temp_real_samples):.4f} avg. samples. Post: {np.mean(temp_real_samples[all_mask, :]):.4f}")
-
-                    temp_samples = temp_real_samples
-                    full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
-                    print(all_mask.sum())
                 else:
                     total_fd = np.sum(nt)
                     total_ns = np.sum(temp_samples, axis=1)
@@ -179,6 +158,29 @@ def generate_data(pd):
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
                     maf_mask = min_fd > total_ns * .05
                     all_mask = maf_mask
+            elif "real_data_matrix" in pd:
+                temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
+                temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
+                temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_true_data[
+                    temp_st_matrix])
+
+                total_fd = np.sum(temp_real_samples, axis=1)
+                total_ns = np.sum(temp_nts, axis=1)
+
+                min_fd = np.minimum(total_fd, total_ns - total_fd)
+                maf_mask = min_fd > total_ns * pd["means_array"][0]
+                all_mask = maf_mask
+
+                if "lowmiss" in pd:
+                    # bad magic value reference, fix this later
+                    missmask = np.sum(temp_nts, axis=1) / 504 > pd["lowmiss"]
+                    print(f"Fraction accepted: {np.sum(missmask) / missmask.shape[0]}")
+                    all_mask = missmask & all_mask
+                    print(
+                        f"Pre-missingness: {np.mean(temp_real_samples):.4f} avg. samples. Post: {np.mean(temp_real_samples[all_mask, :]):.4f}")
+
+                temp_samples = temp_real_samples
+                full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
             elif pd["sel_type"] == "under":
                 samples_greater_than_zero_start = temp_samples[:, 0] > 0
                 samples_less_than_one_start = temp_samples[:, 0] < nt[0]

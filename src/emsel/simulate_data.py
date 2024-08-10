@@ -175,9 +175,6 @@ def main():
 
             print(f"Generated replicates: {exp_name}")
 
-            print(data_dict["true_data"].shape)
-            print(pd["num_sims"])
-
             if data_dict["true_data"].shape[0] < pd["num_sims"]:
                 continue
 

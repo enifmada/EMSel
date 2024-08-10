@@ -169,7 +169,7 @@ def generate_data(pd):
                 for repl in np.arange(temp_true_data.shape[0]):
                     temp_freqs[repl, :] = temp_true_data[repl, temp_st_matrix[repl, :]]
                 temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_freqs)
-		        print(temp_freqs[:3])
+                print(temp_freqs[:3])
                 print(temp_real_samples[:3])
 
                 assert np.all(temp_real_samples <= temp_nts)

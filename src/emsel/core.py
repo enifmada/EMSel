@@ -494,9 +494,11 @@ class HMM:
             self.ll_final[i, 0] = self.ll_history[:, i][self.ll_history[:, i] < 0][-1]
         return self.s_history, self.s_final, self.ll_history, self.init_params_hist, self.itercount_hist, self.exit_codes
 
-    def compute_multiple_ll(self, s1, s2, obs_counts_array, nts_array, sample_locs_array):
-
-        ll_T = sample_locs_array[0,-1] + 1
+    def compute_multiple_ll(self, s1, s2, data_matrix, init_states=None):
+        sample_locs_array = data_matrix[:, ::3]
+        nts_array = data_matrix[:, 1::3]
+        obs_counts_array = data_matrix[:, 2::3]
+        ll_T = int(sample_locs_array[0, -1] + 1)
         ll_nloc = obs_counts_array.shape[0]
         ll_sample_locs = sample_locs_array[0, :]
 
@@ -518,19 +520,22 @@ class HMM:
 
         ll_bpmf_idx = np.cumsum(ll_nts_uq + 1)
         for i, nt in enumerate(ll_nts_uq[1:], 1):
-            ll_bpmf_a[ll_bpmf_idx[i - 1]:ll_bpmf_idx[i]] = np.arange(nt + 1)
-            ll_bpmf_n[ll_bpmf_idx[i - 1]:ll_bpmf_idx[i]] = nt
+            ll_bpmf_a[ll_bpmf_idx[i - 1]: ll_bpmf_idx[i]] = np.arange(nt + 1)
+            ll_bpmf_n[ll_bpmf_idx[i - 1]: ll_bpmf_idx[i]] = nt
 
         ll_b = binom
         # self.bpmf = self.b.pmf(np.broadcast_to(self.obs_counts[..., None], self.obs_counts.shape+(self.N,)), np.broadcast_to(self.nts[..., None], self.nts.shape+(self.N,)), np.broadcast_to(self.gs, (self.nloc, self.T, self.N))).transpose([1,2,0])
-        ll_bpmf_new = ll_b.pmf(np.broadcast_to(ll_bpmf_a[..., None], ll_bpmf_a.shape + (self.N,)),
-                                   np.broadcast_to(ll_bpmf_n[..., None], ll_bpmf_n.shape + (self.N,)),
-                                   np.broadcast_to(self.gs, (ll_bpmf_a.shape[0], self.N)))
+        ll_bpmf_new = ll_b.pmf(
+            np.broadcast_to(ll_bpmf_a[..., None], (*ll_bpmf_a.shape, self.N)),
+            np.broadcast_to(ll_bpmf_n[..., None], (*ll_bpmf_n.shape, self.N)),
+            np.broadcast_to(self.gs, (ll_bpmf_a.shape[0], self.N)),
+        )
 
         ll_a_t_to_bpmf_idx = np.zeros_like(ll_nts)
         for i, t in np.transpose(np.nonzero(ll_nts)):
-            ll_a_t_to_bpmf_idx[i, t] = ll_obs_counts[i, t] + ll_bpmf_idx[
-                np.where(ll_nts_uq == ll_nts[i, t])[0][0] - 1]
+            ll_a_t_to_bpmf_idx[i, t] = (
+                    ll_obs_counts[i, t] + ll_bpmf_idx[np.where(ll_nts_uq == ll_nts[i, t])[0][0] - 1]
+            )
 
         ll_a = self.calc_transition_probs_old([s1, s2])
         assert np.all(np.isclose(np.sum(ll_a, axis=1), 1))
@@ -539,15 +544,25 @@ class HMM:
         uq_a_powers = np.unique(sample_time_diffs)
         uq_a_exps = get_uq_a_exps(ll_a, uq_a_powers)
         ll_cs = np.ones((ll_T, ll_nloc))
-        ll_alphas_tilde = np.einsum("i, ni->in", self.init_state, ll_bpmf_new[ll_a_t_to_bpmf_idx[:, 0], :])
-        ll_cs[0, :] = 1. / np.sum(ll_alphas_tilde, axis=0)
+        if init_states is not None:
+            assert init_states.shape == (ll_nloc, self.N)
+            ll_alphas_tilde = np.einsum("ni, ni -> in", init_states, ll_bpmf_new[ll_a_t_to_bpmf_idx[:, 0], :])
+        else:
+            ll_alphas_tilde = np.einsum(
+                "i, ni->in", self.init_state, ll_bpmf_new[ll_a_t_to_bpmf_idx[:, 0], :]
+            )
+        ll_cs[0, :] = 1.0 / np.sum(ll_alphas_tilde, axis=0)
         ll_alphas_hat = np.einsum("n, in -> in", ll_cs[0, :], ll_alphas_tilde)
         for i, t in enumerate(sample_times[1:]):
-            ll_alphas_tilde = np.einsum("in, ij, nj -> jn", ll_alphas_hat,
-                    uq_a_exps[np.where(uq_a_powers == sample_time_diffs[i])[0][0]],ll_bpmf_new[ll_a_t_to_bpmf_idx[:, t], :])
-            ll_cs[t, :] = 1. / np.sum(ll_alphas_tilde, axis=0)
+            ll_alphas_tilde = np.einsum(
+                "in, ij, nj -> jn",
+                ll_alphas_hat,
+                uq_a_exps[np.where(uq_a_powers == sample_time_diffs[i])[0][0]],
+                ll_bpmf_new[ll_a_t_to_bpmf_idx[:, t], :],
+            )
+            ll_cs[t, :] = 1.0 / np.sum(ll_alphas_tilde, axis=0)
             ll_alphas_hat = np.einsum("n, in -> in", ll_cs[t, :], ll_alphas_tilde)
-            assert np.all(np.isclose(np.sum(ll_alphas_hat, axis=0), 1.))
+            assert np.all(np.isclose(np.sum(ll_alphas_hat, axis=0), 1.0))
         return -np.sum(np.log(ll_cs), axis=0)
 
     def is_valid_s(self, s1, s2):

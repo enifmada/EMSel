@@ -216,8 +216,9 @@ def main():
                     est_ic_init_state[i, 1:-1] = beta_pdf / np.sum(beta_pdf)
             else:
                 est_ic_init_state = None
-            zeros_lls = iter_hmm.compute_multiple_ll(0,0,data_matrix,init_states=est_ic_init_state)
-            ns_lls = iter_hmm.compute_multiple_ll(0,0,data_matrix,init_states=est_ic_init_state)
+            print(est_ic_init_state)
+            zeros_lls = iter_hmm.compute_multiple_ll(0,0,zeros_dm,init_states=est_ic_init_state)
+            ns_lls = iter_hmm.compute_multiple_ll(0,0,ns_dm,init_states=est_ic_init_state)
             hmm_dict["cond_correction_ll"] = np.log(1-np.exp(zeros_lls)-np.exp(ns_lls))
 
         hmm_dict["ll_final"] = np.array([hmm_dict["ll_hist"][hmm_dict["itercount_hist"][i], i] for i in range(hmm_dict["itercount_hist"].shape[0])])

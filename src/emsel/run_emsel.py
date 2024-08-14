@@ -211,7 +211,7 @@ def main():
             if hmm_dd["ic_update_type"] != "fixed":
                 est_ic_init_state = np.zeros((data_matrix.shape[0], iter_hmm.gs.shape[0]))
                 for i in np.arange(data_matrix.shape[0]):
-                    beta_distrib = beta(hmm_dict["neutral_ic"][0, i, 0], hmm_dict["neutral_ic"][1, i, 0])
+                    beta_distrib = beta(hmm_dict["ic_dist"][0, i, 0], hmm_dict["ic_dist"][1, i, 0])
                     beta_pdf = beta_distrib.pdf(iter_hmm.gs[1:-1])
                     est_ic_init_state[i, 1:-1] = beta_pdf / np.sum(beta_pdf)
             else:

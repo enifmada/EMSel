@@ -8,6 +8,7 @@ import allel
 from pandas import read_csv
 from emsel.emsel_util import vcf_to_useful_format, save_csv_output
 from joblib import Parallel, delayed
+from scipy.stats import beta
 
 def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, init_mean=False, min_init_val=1e-8, min_ic = 5):
     iter_hmm.update_internals_from_datum(obs_counts, nts, sample_locs)
@@ -53,6 +54,7 @@ def main():
     parser.add_argument("--full_output", action="store_true", help="save a pickle file with a full set of outputs (in addition to the CSV)")
     parser.add_argument("--force", type=str, nargs=1, help="if the VCF file only contains homozygous loci, force it to be read as either haploid or diploid")
     parser.add_argument("--no_neutral", action="store_true", help="override the requirement that neutral be run")
+    parser.add_argument("--compute_cond", action="store_true", help="compute log P(segregating in sample) for conditionalizing")
     args = parser.parse_args()
 
     hmm_dd = {}
@@ -196,6 +198,28 @@ def main():
                 "itercount_hist": itercount_hist,
                 "exit_codes": exit_codes
             }
+        if args.compute_cond:
+            data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3))
+            for i in range(len(hmm_data["final_data"])):
+                data_matrix[i, ::3] = hmm_data["sample_times"][i]
+                data_matrix[i, 1::3] = hmm_data["num_samples"][i]
+                data_matrix[i, 2::3] = hmm_data["final_data"][i]
+            zeros_dm = np.copy(data_matrix)
+            zeros_dm[:, 2::3] = 0
+            ns_dm = np.copy(data_matrix)
+            ns_dm[:, 2::3] = ns_dm[:, 1::3]
+            if hmm_dd["ic_update_type"] != "fixed":
+                est_ic_init_state = np.zeros((data_matrix.shape[0], iter_hmm.gs))
+                for i in np.arange(data_matrix.shape[0]):
+                    beta_distrib = beta(hmm_dict["neutral_ic"][0, i, 0], hmm_dict["neutral_ic"][1, i, 0])
+                    beta_pdf = beta_distrib.pdf(iter_hmm.gs[1:-1])
+                    est_ic_init_state[i, 1:-1] = beta_pdf / np.sum(beta_pdf)
+            else:
+                est_ic_init_state = None
+            zeros_lls = iter_hmm.compute_multiple_ll(0,0,data_matrix,init_state=est_ic_init_state)
+            ns_lls = iter_hmm.compute_multiple_ll(0,0,data_matrix,init_state=est_ic_init_state)
+            hmm_dict["cond_correction_ll"] = np.log(1-np.exp(zeros_lls)-np.exp(ns_lls))
+
         hmm_dict["ll_final"] = np.array([hmm_dict["ll_hist"][hmm_dict["itercount_hist"][i], i] for i in range(hmm_dict["itercount_hist"].shape[0])])
         del hmm_dict["ll_hist"]
         if sel_type == "neutral":

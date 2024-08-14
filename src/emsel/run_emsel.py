@@ -198,7 +198,7 @@ def main():
                 "itercount_hist": itercount_hist,
                 "exit_codes": exit_codes
             }
-        if args.compute_cond:
+        if args.compute_cond and sel_type == "neutral":
             data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3))
             for i in range(len(hmm_data["final_data"])):
                 data_matrix[i, ::3] = hmm_data["sample_times"][i]
@@ -226,6 +226,8 @@ def main():
             hmm_dd["neutral_ll"] = hmm_dict["ll_final"]
             hmm_dd["neutral_ic"] = hmm_dict["ic_dist"]
             hmm_dd["neutral_itercount"] = hmm_dict["itercount_hist"]
+            if args.compute_cond:
+                hmm_dd["cond_correction_ll"] = hmm_dict["cond_correction_ll"]
         else:
             hmm_dd[f"{sel_type}_run"] = hmm_dict
 

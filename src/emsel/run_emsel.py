@@ -199,7 +199,7 @@ def main():
                 "exit_codes": exit_codes
             }
         if args.compute_cond and sel_type == "neutral":
-            data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3))
+            data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3), dtype=int)
             for i in range(len(hmm_data["final_data"])):
                 data_matrix[i, ::3] = hmm_data["sample_times"][i]
                 data_matrix[i, 1::3] = hmm_data["num_samples"][i]

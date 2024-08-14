@@ -198,6 +198,7 @@ def main():
                 "itercount_hist": itercount_hist,
                 "exit_codes": exit_codes
             }
+        print(hmm_dict["ic_dist"].shape)
         if args.compute_cond and sel_type == "neutral":
             data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3), dtype=int)
             for i in range(len(hmm_data["final_data"])):

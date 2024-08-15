@@ -125,7 +125,7 @@ def main():
     anc_samples_mask = np.sum(hmm_data["num_samples"], axis=1) > hmm_dd["min_sample_density"] * max_samples
     combo_mask = num_samples_mask & MAF_filter_mask & anc_samples_mask
 
-    print(f":\nMAF filtered {hmm_data['final_data'].shape[0] - MAF_filter_mask.sum()}\n"
+    print(f"MAF filtered {hmm_data['final_data'].shape[0] - MAF_filter_mask.sum()}\n"
           f"< 2 samples {hmm_data['final_data'].shape[0] - num_samples_mask.sum()}\n"
           f"few samples filtered {hmm_data['final_data'].shape[0] - anc_samples_mask.sum()}\n"
           f"overall filtered {hmm_data['final_data'].shape[0] - combo_mask.sum()}")
@@ -198,7 +198,6 @@ def main():
                 "itercount_hist": itercount_hist,
                 "exit_codes": exit_codes
             }
-        print(hmm_dict["ic_dist"].shape)
         if args.compute_cond and sel_type == "neutral":
             data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3), dtype=int)
             for i in range(len(hmm_data["final_data"])):
@@ -212,12 +211,11 @@ def main():
             if hmm_dd["ic_update_type"] != "fixed":
                 est_ic_init_state = np.zeros((data_matrix.shape[0], iter_hmm.gs.shape[0]))
                 for i in np.arange(data_matrix.shape[0]):
-                    beta_distrib = beta(hmm_dict["ic_dist"][0, i].flatten(), hmm_dict["ic_dist"][1, i].flatten())
+                    beta_distrib = beta(hmm_dict["ic_dist"][i, 0], hmm_dict["ic_dist"][i, 1])
                     beta_pdf = beta_distrib.pdf(iter_hmm.gs[1:-1])
                     est_ic_init_state[i, 1:-1] = beta_pdf / np.sum(beta_pdf)
             else:
                 est_ic_init_state = None
-            print(est_ic_init_state)
             zeros_lls = iter_hmm.compute_multiple_ll(0,0,zeros_dm,init_states=est_ic_init_state)
             ns_lls = iter_hmm.compute_multiple_ll(0,0,ns_dm,init_states=est_ic_init_state)
             hmm_dict["cond_correction_ll"] = np.log(1-np.exp(zeros_lls)-np.exp(ns_lls))

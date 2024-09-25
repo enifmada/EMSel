@@ -181,7 +181,7 @@ def main():
             hmm_dict = {
                 "s_final": np.array([rp[1] for rp in res]).T,
                 "ll_hist": np.array([rp[2] for rp in res]).T,
-                "ic_dist": np.array([true_rp3]).T,
+                "ic_dist": np.array([true_rp3]).T.squeeze(),
                 "itercount_hist": np.array([rp[4] for rp in res]),
                 "exit_codes": np.array([rp[5] for rp in res]),
             }
@@ -194,7 +194,7 @@ def main():
             hmm_dict = {
                 "s_final": s_final,
                 "ll_hist": ll_hist,
-                "ic_dist": ic_dist,
+                "ic_dist": ic_dist.squeeze(),
                 "itercount_hist": itercount_hist,
                 "exit_codes": exit_codes
             }

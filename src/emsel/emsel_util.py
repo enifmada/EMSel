@@ -82,11 +82,6 @@ def generate_data(pd):
         sample_times = pd["sampling_matrix"].shape[0]
         sample_locs = pd["sampling_matrix"][:, 0]
         full_nts = np.zeros((1, sample_times))
-    elif "real_data_matrix" in pd:
-        nt = pd["real_data_matrix"][0, 1::3]
-        sample_times = pd["real_data_matrix"].shape[1]//3
-        sample_locs = pd["real_data_matrix"][0, ::3]
-        full_nts = np.zeros((1, sample_times))
     else:
         data_matched_flag = False
         nt = np.zeros(int(pd["sample_times"]), dtype=int) + pd["num_samples"]
@@ -113,9 +108,6 @@ def generate_data(pd):
             p = np.zeros(samples_per_run)+pd["p_init"]
         elif pd["init_cond"] == "real_special":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(pd["means_array"][1:], size=samples_per_run, replace=True)
-        elif pd["init_cond"] == "real_matched":
-            matched_idxs = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(pd["real_data_matrix"].shape[0]), size=samples_per_run, replace=True).flatten()
-            p = pd["means_array"][1:][matched_idxs]
         elif pd["init_cond"] == "recip":
             p = np.random.default_rng(pd["seed"]+trial_num).choice(np.arange(1, 2*pd["Ne"])/(2*pd["Ne"]), size=samples_per_run, p=weights)
         else:
@@ -145,49 +137,15 @@ def generate_data(pd):
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
                     maf_mask = min_fd > total_ns * pd["means_array"][0]
                     all_mask = anc_samples_mask & num_samples_mask & maf_mask
-
-                    if "lowmiss" in pd:
-                        missmask = np.sum(temp_nts, axis=1)/np.sum(nt) > 1-pd["lowmiss"]
-                        print(np.sum(missmask)/missmask.shape[0])
-                        all_mask = missmask & all_mask
-                        print(f"Pre-lowmiss: {np.mean(temp_nts):.4f} avg. samples. Post: {np.mean(temp_nts[all_mask, :]):.4f}")
-
                     full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
                     temp_samples = temp_samples_ms
 
                 else:
                     total_fd = np.sum(nt)
                     total_ns = np.sum(temp_samples, axis=1)
-
                     min_fd = np.minimum(total_fd, total_ns - total_fd)
                     maf_mask = min_fd > total_ns * pd["means_array"][0]
                     all_mask = maf_mask
-            elif "real_data_matrix" in pd:
-                temp_st_matrix = pd["real_data_matrix"][matched_idxs, ::3]
-                temp_nts = pd["real_data_matrix"][matched_idxs, 1::3]
-                temp_freqs = np.zeros((temp_true_data.shape[0], temp_st_matrix.shape[1]))
-                for repl in np.arange(temp_true_data.shape[0]):
-                    temp_freqs[repl, :] = temp_true_data[repl, temp_st_matrix[repl, :]]
-                temp_real_samples = np.random.default_rng(pd["seed"] + trial_num).binomial(temp_nts, temp_freqs)
-
-                assert np.all(temp_real_samples <= temp_nts)
-                total_fd = np.sum(temp_real_samples, axis=1)
-                total_ns = np.sum(temp_nts, axis=1)
-
-                min_fd = np.minimum(total_fd, total_ns - total_fd)
-                maf_mask = min_fd > total_ns * pd["means_array"][0]
-                all_mask = maf_mask
-
-                if "lowmiss" in pd:
-                    # bad magic value reference, fix this later
-                    missmask = np.sum(temp_nts, axis=1) / 504 > 1-pd["lowmiss"]
-                    print(f"Fraction accepted: {np.sum(missmask) / missmask.shape[0]}")
-                    all_mask = missmask & all_mask
-                    print(
-                        f"Pre-lowmiss: {np.mean(temp_nts):.4f} avg. samples. Post: {np.mean(temp_nts[all_mask, :]):.4f}")
-
-                temp_samples = temp_real_samples
-                full_nts = np.vstack((full_nts, temp_nts[all_mask, :]))
             elif pd["sel_type"] == "under":
                 samples_greater_than_zero_start = temp_samples[:, 0] > 0
                 samples_less_than_one_start = temp_samples[:, 0] < nt[0]

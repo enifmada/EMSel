@@ -10,7 +10,7 @@ from emsel.emsel_util import vcf_to_useful_format, save_csv_output
 from joblib import Parallel, delayed
 from scipy.stats import beta
 
-def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, init_mean=False, min_init_val=1e-8, min_ic = 5):
+def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, init_mean=False, min_init_val=1e-8, min_ic = 5, save_history=False):
     iter_hmm.update_internals_from_datum(obs_counts, nts, sample_locs)
     iter_hmm.s1 = iter_hmm.s1_init
     iter_hmm.s2 = iter_hmm.s2_init
@@ -22,7 +22,7 @@ def run_one_s(iter_hmm, obs_counts, nts, sample_locs, loc, tol, max_iter, init_m
         iter_hmm.init_state = temp_init_state/np.sum(temp_init_state)
     else:
         iter_hmm.init_state = iter_hmm.init_init_state
-    return iter_hmm.compute_one_s(loc, tol, max_iter, min_init_val=min_init_val, min_ic=min_ic)
+    return iter_hmm.compute_one_s(loc, tol, max_iter, min_init_val=min_init_val, min_ic=min_ic, save_history=save_history)
 
 def main():
     parser = argparse.ArgumentParser()
@@ -45,6 +45,7 @@ def main():
     parser.add_argument("--hidden_interp", default="chebyshev", help="interpolation of the hidden states (linear vs. Chebyshev nodes for now)")
     parser.add_argument("--ic_update_type", default="beta", help="type of init cond estimation")
     parser.add_argument("--progressbar", action="store_true", help="adds a tqdm progress bar")
+    parser.add_argument("--save_history", action="store_true", help="save s and ll history for in-depth analysis (memory intensive)")
     parser.add_argument("--selection_modes", default="all", nargs='*', help="strings of update types to run")
     parser.add_argument("--min_itercount", type=int, default=5, help="minimum number of EM iterations before terminating")
     parser.add_argument("--min_init_val", type=float, default=1e-8, help="minimum value of an init state probability")
@@ -170,7 +171,7 @@ def main():
                 iter_hmm.update_func, iter_hmm.update_func_args = iter_hmm.get_update_func(sel_type, {})
                 iter_hmm.init_update_type = hmm_dd["ic_update_type"]
                 iter_hmm.init_update_func, iter_hmm.init_params_to_state_func, iter_hmm.init_update_size = iter_hmm.get_init_update_func(hmm_dd["ic_update_type"])
-                res = parallel(delayed(run_one_s)(iter_hmm, hmm_data["final_data"][i], hmm_data["num_samples"][i], hmm_data["sample_times"][i], i, hmm_dd["tol"], hmm_dd["max_iter"], hmm_dd["init_cond"] == "data_mean", hmm_dd["min_init_val"], hmm_dd["min_ic"]) for i in parallel_loop)
+                res = parallel(delayed(run_one_s)(iter_hmm, hmm_data["final_data"][i], hmm_data["num_samples"][i], hmm_data["sample_times"][i], i, hmm_dd["tol"], hmm_dd["max_iter"], hmm_dd["init_cond"] == "data_mean", hmm_dd["min_init_val"], hmm_dd["min_ic"], args.save_history) for i in parallel_loop)
 
             #silly fix for SLURM issues
             true_rp3 = [rp[3] for rp in res]
@@ -179,6 +180,7 @@ def main():
                     if rp[3].shape == (1,):
                         true_rp3[r_i] = rp[3][0]
             hmm_dict = {
+                "s_hist": np.array([rp[0] for rp in res]).T,
                 "s_final": np.array([rp[1] for rp in res]).T,
                 "ll_hist": np.array([rp[2] for rp in res]).T,
                 "ic_dist": np.array([true_rp3]).T.squeeze(),
@@ -190,8 +192,9 @@ def main():
             iter_hmm.update_type = sel_type
             iter_hmm.update_func, iter_hmm.update_func_args = iter_hmm.get_update_func(sel_type, {})
             s_hist, s_final, ll_hist, ic_dist, itercount_hist, exit_codes = iter_hmm.compute_s(hmm_data["final_data"], hmm_data["num_samples"], hmm_data["sample_times"],
-                                                                        sel_type, hmm_dd["ic_update_type"], hmm_dd["tol"], hmm_dd["max_iter"], progressbar=args.progressbar, data_mean= hmm_dd["init_cond"] == "data_mean")
+                                                                        sel_type, hmm_dd["ic_update_type"], hmm_dd["tol"], hmm_dd["max_iter"], progressbar=args.progressbar, data_mean= hmm_dd["init_cond"] == "data_mean", save_history = args.save_history)
             hmm_dict = {
+                "s_hist": s_hist,
                 "s_final": s_final,
                 "ll_hist": ll_hist,
                 "ic_dist": ic_dist.squeeze(),
@@ -219,9 +222,13 @@ def main():
             zeros_lls = iter_hmm.compute_multiple_ll(0,0,zeros_dm,init_states=est_ic_init_state)
             ns_lls = iter_hmm.compute_multiple_ll(0,0,ns_dm,init_states=est_ic_init_state)
             hmm_dict["cond_correction_ll"] = np.log(1-np.exp(zeros_lls)-np.exp(ns_lls))
-
-        hmm_dict["ll_final"] = np.array([hmm_dict["ll_hist"][hmm_dict["itercount_hist"][i], i] for i in range(hmm_dict["itercount_hist"].shape[0])])
-        del hmm_dict["ll_hist"]
+        
+        if args.save_history:
+            hmm_dict["ll_final"] = np.array([hmm_dict["ll_hist"][hmm_dict["itercount_hist"][i], i] for i in range(hmm_dict["itercount_hist"].shape[0])])
+        else:
+            hmm_dict["ll_final"] = hmm_dict["ll_hist"]
+            del hmm_dict["ll_hist"]
+            del hmm_dict["s_hist"]
         if sel_type == "neutral":
             hmm_dd["neutral_ll"] = hmm_dict["ll_final"]
             hmm_dd["neutral_ic"] = hmm_dict["ic_dist"]

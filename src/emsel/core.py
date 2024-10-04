@@ -396,7 +396,7 @@ class HMM:
         return a_t_to_bpmf_idx, bpmf_new
 
 
-    def compute_one_s(self, loc, tol, max_iter, min_init_val=1e-8, min_ic=5):
+    def compute_one_s(self, loc, tol, max_iter, min_init_val=1e-8, min_ic=5, save_history=False):
         s_hist = np.zeros((max_iter+1, 2))
         s_hist[0, :] = (self.s1, self.s2)
         ll_hist = np.zeros(max_iter+1)
@@ -418,14 +418,14 @@ class HMM:
                     s_hist[best_idx+2:, :] = 0
                     ll_hist[best_idx+2:] = 0
                     ic_return = 12 if invalid_s_flag else 8
-                    return s_hist, [s_hist[best_idx+1, 0], s_hist[best_idx+1, 1]], ll_hist, init_params_cache[best_idx+1, :], best_idx, ic_return
+                    return s_hist if save_history else 0, [s_hist[best_idx+1, 0], s_hist[best_idx+1, 1]], ll_hist if save_history else ll_hist[ll_hist < 0][-1], init_params_cache[best_idx+1, :], best_idx, ic_return
                 elif invalid_s_flag:
-                    return s_hist, [self.s1, self.s2], ll_hist, self.init_params, itercount, 4
+                    return s_hist if save_history else 0, [self.s1, self.s2], ll_hist if save_history else ll_hist[ll_hist < 0][-1], self.init_params, itercount, 4
                 else:
-                    return s_hist, [self.s1, self.s2], ll_hist, self.init_params, itercount, 0
+                    return s_hist if save_history else 0, [self.s1, self.s2], ll_hist if save_history else ll_hist[ll_hist < 0][-1], self.init_params, itercount, 0
             if np.min(self.gammas[:, 0]) < -1e-3:
                 print(f"idx {loc} iter {itercount} parameters absurd! {s1_next:.4f} {s2_next:.4f} {np.min(self.gammas[:, 0])}. Stopping.")
-                return s_hist, [self.s1, self.s2], ll_hist, self.init_params, itercount, 1
+                return s_hist if save_history else 0, [self.s1, self.s2], ll_hist if save_history else ll_hist[ll_hist < 0][-1], self.init_params, itercount, 1
             if not self.is_valid_s(s1_next, s2_next):
                 s_hist[itercount + 1, :] = self.s1, self.s2
 
@@ -435,7 +435,7 @@ class HMM:
                     invalid_s_flag = True
                     continue
                 else:
-                    return s_hist, [self.s1, self.s2], ll_hist, self.init_params, itercount, 2
+                    return s_hist if save_history else 0, [self.s1, self.s2], ll_hist if save_history else ll_hist[ll_hist < 0][-1], self.init_params, itercount, 2
             if itercount > 1 and ll_hist[itercount] < ll_hist[itercount - 1] and ll_hist[itercount-1] < ll_hist[itercount-2]:
                 if itercount <= min_itercount:
                     first_five_stop = True
@@ -443,11 +443,11 @@ class HMM:
                     best_idx = np.argmax(ll_hist[:min_itercount])
                     s_hist[best_idx + 2:, :] = 0
                     ll_hist[best_idx + 2:] = 0
-                    return s_hist, s_hist[best_idx + 1, :], ll_hist, init_params_cache[best_idx+1, :], best_idx, 7
+                    return s_hist if save_history else 0, s_hist[best_idx + 1, :], ll_hist if save_history else ll_hist[ll_hist < 0][-1], init_params_cache[best_idx+1, :], best_idx, 7
                 else:
                     s_hist[itercount-1:, :] = 0
                     ll_hist[itercount-1:] = 0
-                    return s_hist, [s_hist[itercount-2, 0], s_hist[itercount-2, 1]], ll_hist, init_params_cache[-2, :], itercount-2, 3
+                    return s_hist if save_history else 0, [s_hist[itercount-2, 0], s_hist[itercount-2, 1]], ll_hist if save_history else ll_hist[ll_hist < 0][-1], init_params_cache[-2, :], itercount-2, 3
 
             s_hist[itercount + 1, :] = (s1_next, s2_next)
             if self.update_type != "neutral":
@@ -460,22 +460,20 @@ class HMM:
             assert np.all(np.isclose(np.sum(self.a, axis=1), 1))
             itercount += 1
         print(f"{loc} Max iterations exceeded without convergence. Stopping.")
-        return s_hist, [self.s1, self.s2], ll_hist, self.init_params, itercount-1, 9
+        return s_hist if save_history else 0, [self.s1, self.s2], ll_hist if save_history else ll_hist[ll_hist < 0][-1], self.init_params, itercount-1, 9
 
-    def compute_s(self, obs_counts, nts, sample_times, update_type, init_update_type, tol, max_iter, progressbar=True, data_mean=False, min_init_val=1e-8, **update_args):
+    def compute_s(self, obs_counts, nts, sample_times, update_type, init_update_type, tol, max_iter, progressbar=True, data_mean=False, min_init_val=1e-8, save_history=False, **update_args):
         self.num_replicates = obs_counts.shape[0]
         self.update_type = update_type
         self.init_update_type = init_update_type
         self.update_func, self.update_func_args = self.get_update_func(update_type, update_args)
         self.init_update_func, self.init_params_to_state_func, self.init_update_size = self.get_init_update_func(init_update_type)
-        self.s_history = np.zeros((max_iter+1, 2, self.num_replicates))
-        self.ll_history = np.zeros((max_iter+1, self.num_replicates))
+        self.s_history = np.zeros((max_iter+1, 2, self.num_replicates)) if save_history else 0
+        self.ll_history = np.zeros((max_iter+1, self.num_replicates)) if save_history else 0
         self.s_final = np.zeros((2, self.num_replicates))
         self.ll_final = np.zeros((self.num_replicates, 1))
-        self.init_params_hist = np.zeros((self.num_replicates, self.init_update_size))
-        self.itercount_hist = np.zeros((self.num_replicates, 1), dtype=int)
-        self.alpha_history = np.zeros((max_iter, self.num_replicates))
-        self.alpha_vals = np.zeros((max_iter, self.num_replicates))
+        self.init_params_array = np.zeros((self.num_replicates, self.init_update_size))
+        self.itercount_array = np.zeros((self.num_replicates, 1), dtype=int)
         self.exit_codes = np.zeros((self.num_replicates))
         loop_idxs = tqdm(range(self.num_replicates)) if progressbar else range(self.num_replicates)
         for i in loop_idxs:
@@ -490,9 +488,18 @@ class HMM:
             self.s1 = self.s1_init
             self.s2 = self.s2_init
             self.a = self.a_init
-            self.s_history[:, :, i], self.s_final[:, i], self.ll_history[:, i], self.init_params_hist[i, :], self.itercount_hist[i, 0], self.exit_codes[i] = self.compute_one_s(i, tol, max_iter, min_init_val=min_init_val)
-            self.ll_final[i, 0] = self.ll_history[:, i][self.ll_history[:, i] < 0][-1]
-        return self.s_history, self.s_final, self.ll_history, self.init_params_hist, self.itercount_hist, self.exit_codes
+            run_result = self.compute_one_s(i, tol, max_iter, min_init_val=min_init_val,save_history=save_history)
+            self.s_final[:, i] = run_result[1]
+            self.init_params_array[i, :] = run_result[3]
+            self.itercount_array[i, 0] = run_result[4]
+            self.exit_codes[i] = run_result[5]
+            if save_history:
+                self.s_history[:, :, i] = run_result[0]
+                self.ll_history[:, i] = run_result[2]
+                self.ll_final[i, 0] = run_result[2][run_result[2] < 0][-1]
+            else:
+                self.ll_final[i, 0] = run_result[2]
+        return self.s_history, self.s_final, self.ll_history if save_history else self.ll_final, self.init_params_array, self.itercount_array, self.exit_codes
 
     def compute_multiple_ll(self, s1, s2, data_matrix, init_states=None):
         sample_locs_array = data_matrix[:, ::3]

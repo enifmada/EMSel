@@ -180,12 +180,12 @@ def main():
                     if rp[3].shape == (1,):
                         true_rp3[r_i] = rp[3][0]
             hmm_dict = {
-                "s_hist": np.array([rp[0] for rp in res]).T,
-                "s_final": np.array([rp[1] for rp in res]).T,
-                "ll_hist": np.array([rp[2] for rp in res]).T,
+                "s_hist": np.array([rp[0] for rp in res]).T.squeeze(),
+                "s_final": np.array([rp[1] for rp in res]).T.squeeze(),
+                "ll_hist": np.array([rp[2] for rp in res]).T.squeeze(),
                 "ic_dist": np.array([true_rp3]).T.squeeze(),
-                "itercount_hist": np.array([rp[4] for rp in res]),
-                "exit_codes": np.array([rp[5] for rp in res]),
+                "itercount_hist": np.array([rp[4] for rp in res]).squeeze(),
+                "exit_codes": np.array([rp[5] for rp in res]).squeeze(),
             }
         else:
             iter_hmm = HMM(hmm_dd["approx_states"], hmm_dd["Ne"], np.array(hmm_dd["s_init"]),init_cond=hmm_dd["init_cond"], hidden_interp=hmm_dd["hidden_interp"], **hmm_dd["sid_dict"])
@@ -194,12 +194,12 @@ def main():
             s_hist, s_final, ll_hist, ic_dist, itercount_hist, exit_codes = iter_hmm.compute_s(hmm_data["final_data"], hmm_data["num_samples"], hmm_data["sample_times"],
                                                                         sel_type, hmm_dd["ic_update_type"], hmm_dd["tol"], hmm_dd["max_iter"], progressbar=args.progressbar, data_mean= hmm_dd["init_cond"] == "data_mean", save_history = args.save_history)
             hmm_dict = {
-                "s_hist": s_hist,
-                "s_final": s_final,
-                "ll_hist": ll_hist,
+                "s_hist": s_hist.squeeze(),
+                "s_final": s_final.squeeze(),
+                "ll_hist": ll_hist.squeeze(),
                 "ic_dist": ic_dist.squeeze(),
-                "itercount_hist": itercount_hist,
-                "exit_codes": exit_codes
+                "itercount_hist": itercount_hist.squeeze(),
+                "exit_codes": exit_codes.squeeze()
             }
         if args.compute_cond and sel_type == "neutral":
             data_matrix = np.zeros((len(hmm_data["final_data"]), len(hmm_data["final_data"][0])*3), dtype=int)

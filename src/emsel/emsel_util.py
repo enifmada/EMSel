@@ -371,6 +371,7 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
     for llgka in llgka_list:
         temp_lrs = get_lr_statistic(llgka)
         temp_p_vals = np.zeros_like(temp_lrs)
+        print(temp_p_vals.shape)
         if lr_shift > 0:
             temp_p_vals[temp_lrs>lr_shift] = (1-fitted_dist.cdf(temp_lrs[temp_lrs>lr_shift]-lr_shift))/2
             temp_p_vals[temp_lrs<=lr_shift] = np.clip(1-temp_lrs[temp_lrs<=lr_shift]/(2*lr_shift), .5, 1)
@@ -398,6 +399,41 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
             p_idx += classified_array.shape[0]
         classified_array_list.append(classified_array)
     return BH_line, p_vals, classified_array_list
+
+def bh_procedure_2(full_llrs_list, llgka_list, lr_shift, alpha, bh=True):
+    p_vals = []
+    for temp_llrs in full_llrs_list:
+        temp_p_vals = np.zeros_like(temp_llrs)
+        if lr_shift > 0:
+            temp_p_vals[temp_lrs > lr_shift] = (1 - fitted_dist.cdf(temp_lrs[temp_lrs > lr_shift] - lr_shift)) / 2
+            temp_p_vals[temp_lrs <= lr_shift] = np.clip(1 - temp_lrs[temp_lrs <= lr_shift] / (2 * lr_shift), .5, 1)
+        else:
+            temp_p_vals = 1 - fitted_dist.cdf(temp_lrs)
+        p_vals.append(temp_p_vals)
+
+    flat_p_vals = np.zeros(1)
+    for p_val_array in p_vals:
+        for col in np.arange(p_val_array.shape[1]):
+            flat_p_vals = np.hstack((flat_p_vals, p_val_array[:, col]))
+    flat_p_vals = flat_p_vals[1:]
+    if bh:
+        BH_line, rejected_ps = bh_correct(flat_p_vals, alpha, yekutieli=False)
+    else:
+        BH_line, rejected_ps = (alpha, np.where(flat_p_vals <= alpha)[0])
+    p_idx = 0
+    classified_array_list = []
+    for p_i, array_p in enumerate(p_vals):
+        classified_array = np.zeros_like(array_p)
+        for col_p in np.arange(classified_array.shape[1]):
+            non_neutral_idxs = np.intersect1d(rejected_ps[rejected_ps < p_idx + classified_array.shape[0]],
+                                              rejected_ps[rejected_ps > p_idx]) - p_idx
+            if non_neutral_idxs.shape[0] > 0:
+                classified_array[non_neutral_idxs, col_p] = np.argmax(llgka_list[p_i][non_neutral_idxs, 1:, col_p],
+                                                                      axis=1) + 1
+            p_idx += classified_array.shape[0]
+        classified_array_list.append(classified_array)
+    return BH_line, p_vals, classified_array_list
+
 
 def bh_correct(p_values, alpha, yekutieli=False):
     M = p_values.shape[0]

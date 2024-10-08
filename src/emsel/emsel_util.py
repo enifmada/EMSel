@@ -371,7 +371,6 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
     for llgka in llgka_list:
         temp_lrs = get_lr_statistic(llgka)
         temp_p_vals = np.zeros_like(temp_lrs)
-        print(temp_p_vals.shape)
         if lr_shift > 0:
             temp_p_vals[temp_lrs>lr_shift] = (1-fitted_dist.cdf(temp_lrs[temp_lrs>lr_shift]-lr_shift))/2
             temp_p_vals[temp_lrs<=lr_shift] = np.clip(1-temp_lrs[temp_lrs<=lr_shift]/(2*lr_shift), .5, 1)
@@ -400,7 +399,7 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
         classified_array_list.append(classified_array)
     return BH_line, p_vals, classified_array_list
 
-def bh_procedure_2(full_llrs_list, llgka_list, lr_shift, alpha, bh=True):
+def bh_procedure_2(full_llrs_list, llgka_list, fitted_dist, lr_shift, alpha, bh=True):
     p_vals = []
     for temp_llrs in full_llrs_list:
         temp_p_vals = np.zeros_like(temp_llrs)

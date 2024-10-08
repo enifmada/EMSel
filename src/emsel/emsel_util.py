@@ -379,17 +379,9 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
         p_vals.append(temp_p_vals)
 
     flat_p_vals = np.zeros(1)
-    flatter_p_vals = np.zeros(1)
     for p_val_array in p_vals:
-        for col in np.arange(p_val_array.shape[1]):
-            flat_p_vals = np.hstack((flat_p_vals, p_val_array[:, col]))
-        flatter_p_vals = np.hstack((flatter_p_vals, p_val_array.flatten("F")))
+        flat_p_vals = np.hstack((flat_p_vals, p_val_array.flatten("F")))
     flat_p_vals = flat_p_vals[1:]
-    flatter_p_vals = flatter_p_vals[1:]
-
-    assert np.all(np.isclose(flat_p_vals, flatter_p_vals, atol=0))
-    print('hi')
-    raise Error
     if bh:
         BH_line, rejected_ps = bh_correct(flat_p_vals, alpha, yekutieli=False)
     else:
@@ -419,8 +411,7 @@ def bh_procedure_2(full_llrs_list, llgka_list, fitted_dist, lr_shift, alpha, bh=
 
     flat_p_vals = np.zeros(1)
     for p_val_array in p_vals:
-        for col in np.arange(p_val_array.shape[1]):
-            flat_p_vals = np.hstack((flat_p_vals, p_val_array[:, col]))
+        flat_p_vals = np.hstack((flat_p_vals, p_val_array.flatten("F")))
     flat_p_vals = flat_p_vals[1:]
     if bh:
         BH_line, rejected_ps = bh_correct(flat_p_vals, alpha, yekutieli=False)

@@ -419,8 +419,9 @@ def bh_procedure_2(full_llrs_list, llgka_list, fitted_dist, lr_shift, alpha, bh=
         BH_line, rejected_ps = (alpha, np.where(flat_p_vals <= alpha)[0])
     p_idx = 0
     classified_array_list = []
-    for p_i, array_p in enumerate(p_vals):
-        classified_array = np.zeros_like(array_p)
+    for ll_i, array_g in enumerate(llgka_list):
+        assert full_llrs_list[ll_i].shape[0] == array_g.shape[0]
+        classified_array = np.zeros_like(array_g)
         for col_p in np.arange(classified_array.shape[1]):
             non_neutral_idxs = np.intersect1d(rejected_ps[rejected_ps < p_idx + classified_array.shape[0]],
                                               rejected_ps[rejected_ps > p_idx]) - p_idx

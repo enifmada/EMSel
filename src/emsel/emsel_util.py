@@ -426,7 +426,7 @@ def bh_procedure_2(full_llrs_list, llgka_list, fitted_dist, lr_shift, alpha, bh=
             non_neutral_idxs = np.intersect1d(rejected_ps[rejected_ps < p_idx + classified_array.shape[0]],
                                               rejected_ps[rejected_ps > p_idx]) - p_idx
             if non_neutral_idxs.shape[0] > 0:
-                classified_array[non_neutral_idxs, col_p] = np.argmax(llgka_list[p_i][non_neutral_idxs, 1:, col_p],
+                classified_array[non_neutral_idxs, col_p] = np.argmax(llgka_list[ll_i][non_neutral_idxs, 1:, col_p],
                                                                       axis=1) + 1
             p_idx += classified_array.shape[0]
         classified_array_list.append(classified_array)

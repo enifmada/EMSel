@@ -404,10 +404,10 @@ def bh_procedure_2(full_llrs_list, llgka_list, fitted_dist, lr_shift, alpha, bh=
     for temp_llrs in full_llrs_list:
         temp_p_vals = np.zeros_like(temp_llrs)
         if lr_shift > 0:
-            temp_p_vals[temp_lrs > lr_shift] = (1 - fitted_dist.cdf(temp_lrs[temp_lrs > lr_shift] - lr_shift)) / 2
-            temp_p_vals[temp_lrs <= lr_shift] = np.clip(1 - temp_lrs[temp_lrs <= lr_shift] / (2 * lr_shift), .5, 1)
+            temp_p_vals[temp_llrs > lr_shift] = (1 - fitted_dist.cdf(temp_llrs[temp_llrs > lr_shift] - lr_shift)) / 2
+            temp_p_vals[temp_llrs <= lr_shift] = np.clip(1 - temp_llrs[temp_llrs <= lr_shift] / (2 * lr_shift), .5, 1)
         else:
-            temp_p_vals = 1 - fitted_dist.cdf(temp_lrs)
+            temp_p_vals = 1 - fitted_dist.cdf(temp_llrs)
         p_vals.append(temp_p_vals)
 
     flat_p_vals = np.zeros(1)

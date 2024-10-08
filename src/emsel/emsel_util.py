@@ -383,7 +383,7 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
     for p_val_array in p_vals:
         for col in np.arange(p_val_array.shape[1]):
             flat_p_vals = np.hstack((flat_p_vals, p_val_array[:, col]))
-        flatter_p_vals = np.hstack((flatter_p_vals, p_val_array.flatten("C")))
+        flatter_p_vals = np.hstack((flatter_p_vals, p_val_array.flatten("F")))
     flat_p_vals = flat_p_vals[1:]
     flatter_p_vals = flatter_p_vals[1:]
 

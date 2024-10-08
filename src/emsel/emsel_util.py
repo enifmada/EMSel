@@ -387,7 +387,7 @@ def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):
     flat_p_vals = flat_p_vals[1:]
     flatter_p_vals = flatter_p_vals[1:]
 
-    assert np.isclose(flat_p_vals, flatter_p_vals, atol=0)
+    assert np.all(np.isclose(flat_p_vals, flatter_p_vals, atol=0))
     print('hi')
     raise Error
     if bh:

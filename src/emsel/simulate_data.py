@@ -69,7 +69,7 @@ def main():
 
     pd = {
         "sample_times": args.sampling_times,
-        "num_samples": args.num_samples,w
+        "num_samples": args.num_samples,
         "Ne": args.Ne,
         "num_sims": args.num_sims,
     }

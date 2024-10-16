@@ -481,11 +481,11 @@ def get_lr_statistic(llgk_array):
     best_lr = np.amax(llgk_array[:, 1:, :], axis=1)
     return 2*(best_lr - llgk_array[:, 0, :])
 
-def correct_for_het(classified_vals, s_list, onep_types):
+def correct_for_het(classified_vals, het_s_list, onep_types):
     assert onep_types[-1] == "het", "List of one-parameter modes must end with 'het' to correct for it!"
     for t_i, t_v in enumerate(classified_vals):
-        ov_mask = (t_v == len(onep_types)) & (s_list[t_i] >= 0)
-        ud_mask = (t_v == len(onep_types)) & (all_s_data[t_i] < 0)
+        ov_mask = (t_v == len(onep_types)) & (het_s_list[t_i] >= 0)
+        ud_mask = (t_v == len(onep_types)) & (het_s_list[t_i] < 0)
         t_v[t_v == len(onep_types)+1] -= 1
         t_v[t_v == len(onep_types)+2] -= 1
         t_v[t_v == len(onep_types)+3] -= 1

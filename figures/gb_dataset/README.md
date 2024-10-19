@@ -71,8 +71,11 @@ MAF_filter = .05
 min_sample_filter = .1
 ```
 This produces 22 files containing a permutation of every SNP in the dataset, as well as a permutation of a random subset of 100,000 SNPs.
+
 2. Re-run `python SLURM_example.py` with the same script parameters as was used for the original EM-HMM runs in the first section, and submit the 23 created jobs with `sh meta_gb_em.sh`.
-3. Run `python combine_split_runs.py` with `EM_dir = "EM", followed by `python gb_permutation_fitting.py`.
+
+3. Run `python combine_split_runs.py` with `EM_dir = "EM"`, followed by `python gb_permutation_fitting.py`.
+
 4. Set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:
 ```
 data_dir = "data"

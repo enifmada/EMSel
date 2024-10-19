@@ -15,7 +15,7 @@ Each figure and table from this section of the manuscript and Supplementary Mate
 2. Follow all instructions in the [extract_vcfs/](extract_vcfs/) subfolder. You should now have 44 .vcf files labelled capture_only_c{chr} and capture_SG_c{chr} for chr = (1,2,...,22) (the cX and cY files can be ignored from this point forward), as well as several additional .table files, in the extract_vcfs/extracted subfolder. In addition, step 4 of this process will have created Figures S.12-S.13.
 3. Move the contents of the `extract_vcfs/extracted` subfolder to the `data` subfolder created in step 1.
 4. Run `python SLURM_Ne_final.py` with `EM_dir = Path('EM/Ne')`, `data_dir = Path('data')`, and `genodata_type = "capture_only"` at the beginning of the script. Modify other parameters to your liking. This should produce 462 jobs to submit to the cluster, corresponding to running a grid of 21 Ne values on each of the 22 autosomes. Then run `sh meta_gb_EM.sh` to submit the jobs to the cluster.
-5. Run `python interpolate_Ne_grid.py` to get a value of Ne estimated from the dataset. You should get a value of 12202. Now that the value of Ne has been estimated, we can run the full EM-HMM procedure:
+5. Run `python combine_split_runs.py` with `EM_dir = 'EM/Ne'` at the beginning of the script, then run `python interpolate_Ne_grid.py` to get a value of Ne estimated from the dataset. You should get a value of 12202. Now that the value of Ne has been estimated, we can run the full EM-HMM procedure:
 6. Run `python SLURM_example.py` with `EM_dir = Path('EM')`, `data_dir = Path('data')`, and `genodata_type = "capture_only"` at the beginning of the script. Modify the other parameters to your liking. This should produce 110 jobs to submit to the cluster. Then, run `sh meta_gb_EM.sh` to submit the jobs to the cluster. Alternatively, for each created VCF whose filename contains `capture_only`, run EMSel via the command `emsel data/{file_name}.vcf EM/GB_v54.1_capture_only_c{chr}_EM --time_before_present --info_file data/GB_v54.1_capture_only_inds.table --info_cols Genetic_ID Date_mean -ytg 28.1 --save_csv --full_output`. Step 7 assumes that you have 22 files in `EM` that are named `GB_v54.1_capture_only_c{chr}_EM.pkl` for chr = (1,2,...,22).
 7. Run `python combine_split_runs.py`, with `EM_dir = "EM"` at the beginning of the script. 
 8. Set the following parameters at the beginning of the script `aggregate_data.py` and run it using `python aggregate_data.py`:
@@ -61,11 +61,19 @@ classification_types = ["add", "dom", "rec", "het"]
 
 ## Figures 14, S.17
 
-To generate these figures, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, either:
-1. Run the scripts in the "Figures 9-11" section of the [figures/simulation](../simulation) folder (everything before the "Figure 9A" header), followed by the `deltall_qqs_and_confusiontables.py` script as detailed in the "Figure 9D+10" section, then move the outputted `gengamma_params.pkl` file from `figures/simulation/output` to `data`.
-2. Move the provided `gengamma_params.pkl` file from the [sample_datasets](../../sample_datasets) folder into `data`.
-
-Then, set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:
+To generate these figures, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, several scripts must be run:
+1. Run `python permute_gb_data.py` with the following parameters at the beginning of the script:
+```
+data_dir = "data"
+output_dir = "output"
+genodata_type = "capture_only"
+MAF_filter = .05
+min_sample_filter = .1
+```
+This produces 22 files containing a permutation of every SNP in the dataset, as well as a permutation of a random subset of 100,000 SNPs.
+2. Re-run `python SLURM_example.py` with the same script parameters as was used for the original EM-HMM runs in the first section, and submit the 23 created jobs with `sh meta_gb_em.sh`.
+3. Run `python combine_split_runs.py` with `EM_dir = "EM", followed by `python gb_permutation_fitting.py`.
+4. Set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:
 ```
 data_dir = "data"
 EM_dir = "EM"
@@ -85,7 +93,7 @@ genodata_type = "capture_only"
 
 ## Figure S.16
 
-Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command if you are not using the SLURM script. Then, rerun `python aggregate_data.py` and `python gb_figures.py`, both with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
+Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command if you are not using the SLURM script. Then, rerun `python combine_split_runs.py`, `python aggregate_data.py` and `python gb_figures.py`, the latter two with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
 
 ## Figure S.21
 
@@ -97,7 +105,7 @@ genodata_type = "capture_only"
 
 ## Figure S.22B
 
-First, set the following parameters at the beginning of the script `permute_gb_data.py` and run it using `python permute_gb_data.py`:
+If you have not already done so to create Figures 14/S.17, run `python permute_gb_data.py`:
 ```
 data_dir = "data"
 output_dir = "output"
@@ -105,10 +113,9 @@ genodata_type = "capture_only"
 MAF_filter = .05
 min_sample_filter = .1
 ```
+Then, for each created file (there will be 23 of them, all containing "permuted"), run `python SLURM_example.py` with the same parameters as the "All figures" section, submit the jobs using `sh meta_gb_em.sh`, and combine the runs afterwards with `python combine_split_runs.py` (with `EM_dir = "EM"`). Or, run EMSel via the command `emsel data/GB_v54.1_capture_only_c{chr}_permuted.csv EM/GB_v54.1_capture_only_c{chr}_permuted_EM --time_after_zero --full_output --selection_modes neutral add` for all chromosomes.
 
-Then, for each created file (there will be 22 of them, all containing "permuted"), run `python SLURM_example.py` with the same parameters as the "All figures" section, submit the jobs using `sh meta_gb_em.sh`, and combine the runs afterwards with `python combine_split_runs.py`. Or, run EMSel via the command `emsel data/GB_v54.1_capture_only_c{chr}_permuted.csv EM/GB_v54.1_capture_only_c{chr}_permuted_EM --time_after_zero --full_output --selection_modes neutral add`
-
-Lastly, set the following parameters at the beginning of the script `plot_gb_permutations.py` and run it using `python plot_gb_permutations.py`:
+Lastly (or if you have already generated the permutation .pkl files), set the following parameters at the beginning of the script `plot_gb_permutations.py` and run it using `python plot_gb_permutations.py`:
 ```
 EM_dir = "EM"
 output_dir = "output"

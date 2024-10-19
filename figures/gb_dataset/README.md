@@ -1,6 +1,6 @@
 # GB aDNA Dataset
 
-The scripts in this directory recreate Figures 12-14 of the main text and S.12-S21, S.22B, S.23-S.32 of the Supplementary Material, as well as Table 1 of the main text and Tables S.1-S.3 of the Supplementary Material. This README begins with a set of commands that must be run prior to all figures, then  is organized by which (if any) additional non-plotting scripts must be run to generate a given set of figures. All commands to analyze and produce figures are described therein.
+The scripts in this directory recreate Figures 12-14 of the main text and S.12-S21, S.22B, S.23-S.32 of the Supplementary Material, as well as Table 1 of the main text and Tables S.1-S.4 of the Supplementary Material. This README begins with a set of commands that must be run prior to all figures, then  is organized by which (if any) additional non-plotting scripts must be run to generate a given set of figures. All commands to analyze and produce figures are described therein.
 
 **Prior to running the scripts in this directory, change the current working directory to this folder.** Also, if you have not already, install the additional plotting packages required by running the command
 ```
@@ -11,12 +11,14 @@ pip install "emsel[plots] @ git+https://github.com/steinrue/EMSel"
 
 Each figure and table from this section of the manuscript and Supplementary Material requires a full analysis of the GB dataset described in Section 4.1 of the main text. To do so, proceed via the following:
 
-1. Create the subfolders `data`, `EM` and `output`, and `qsubs` within this subdirectory.
+1. Create the subfolders `data`, `EM`, `EM/Ne`, and `output`, and `qsubs` within this subdirectory.
 2. Follow all instructions in the [extract_vcfs/](extract_vcfs/) subfolder. You should now have 44 .vcf files labelled capture_only_c{chr} and capture_SG_c{chr} for chr = (1,2,...,22) (the cX and cY files can be ignored from this point forward), as well as several additional .table files, in the extract_vcfs/extracted subfolder. In addition, step 4 of this process will have created Figures S.12-S.13.
 3. Move the contents of the `extract_vcfs/extracted` subfolder to the `data` subfolder created in step 1.
-4. Run `python SLURM_example.py` with `EM_dir = Path('EM')`, `data_dir = Path('data')`, and `genodata_type = "capture_only"` at the beginning of the script. Modify the other parameters to your liking. Then, run `sh meta_gb_EM.sh` to submit the jobs to the cluster. Alternatively, for each created VCF whose filename contains `capture_only`, run EMSel via the command `emsel data/{file_name}.vcf EM/GB_v54.1_capture_only_c{chr}_EM --time_before_present --info_file data/GB_v54.1_capture_only_inds.table --info_cols Genetic_ID Date_mean -ytg 28.1 --save_csv --full_output`. Step 6 assumes that you have 22 files in `EM` that are named `GB_v54.1_capture_only_c{chr}_EM.pkl` for chr = (1,2,...,22).
-5. Run `python combine_split_runs.py`, with `EM_dir = "EM"` at the beginning of the script. 
-6. Set the following parameters at the beginning of the script `aggregate_data.py` and run it using `python aggregate_data.py`:
+4. Run `python SLURM_Ne_final.py` with `EM_dir = Path('EM/Ne')`, `data_dir = Path('data')`, and `genodata_type = "capture_only"` at the beginning of the script. Modify other parameters to your liking. This should produce 462 jobs to submit to the cluster, corresponding to running a grid of 21 Ne values on each of the 22 autosomes. Then run `sh meta_gb_EM.sh` to submit the jobs to the cluster.
+5. Run `python interpolate_Ne_grid.py` to get a value of Ne estimated from the dataset. You should get a value of 12202. Now that the value of Ne has been estimated, we can run the full EM-HMM procedure:
+6. Run `python SLURM_example.py` with `EM_dir = Path('EM')`, `data_dir = Path('data')`, and `genodata_type = "capture_only"` at the beginning of the script. Modify the other parameters to your liking. This should produce 110 jobs to submit to the cluster. Then, run `sh meta_gb_EM.sh` to submit the jobs to the cluster. Alternatively, for each created VCF whose filename contains `capture_only`, run EMSel via the command `emsel data/{file_name}.vcf EM/GB_v54.1_capture_only_c{chr}_EM --time_before_present --info_file data/GB_v54.1_capture_only_inds.table --info_cols Genetic_ID Date_mean -ytg 28.1 --save_csv --full_output`. Step 7 assumes that you have 22 files in `EM` that are named `GB_v54.1_capture_only_c{chr}_EM.pkl` for chr = (1,2,...,22).
+7. Run `python combine_split_runs.py`, with `EM_dir = "EM"` at the beginning of the script. 
+8. Set the following parameters at the beginning of the script `aggregate_data.py` and run it using `python aggregate_data.py`:
 ```
 data_dir = "data"
 EM_dir = "EM"
@@ -24,7 +26,6 @@ output_dir = "output"
 genodata_type = "capture_only"
 classification_types = ["add", "dom", "het", "rec"]
 ```
-This will also generate the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files needed for the data-matched simulations (see "Figures 9-11" in the [figures/simulation](../simulation) README). The data-matched simulations, in turn, are needed to analyze the unconstrained EM and recreate Figure 14.
 
 ## Figures 12, 13A, S.18-20, (S.23-30)A, Table 1*, Tables S.1-S.3*
 

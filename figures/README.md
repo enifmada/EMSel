@@ -20,3 +20,7 @@ Detailed descriptions on how to run the scripts can be found in the subdirectory
 The subdirectory [gb_dataset/](gb_dataset/) contains scripts to generate all plots found in Section 4.3 of the manuscript, as well as Figures S.12-S.32 and Tables S.1-S.3 of the Supplementary Material. These plots _do_ require a VCF as input. 
 
 Detailed descriptions on how to run the scripts can be found in the subdirectory.
+
+## horse_dataset subdirectory
+
+The subdirectory [horse_dataset/](horse_dataset/) contains scripts to generate Figure 15 of the manuscript and carry out all related analyses.

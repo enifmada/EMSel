@@ -14,7 +14,7 @@ Run `python make_directories.py` in this directory to set up the correct folder 
 - `output`, `output/pure_sim`, `output/ibdne`, `output/real_matched`
 - `classified`, `qsubs`
 
-## Figures 3-5, 7, S.1-S.11
+## Figures 3-5, 7, S.1-S.12
 
 These figures are all generated from the large simulation described in Section 3. The simulated data can be recreated and reanalyzed by taking the following steps:
 
@@ -93,10 +93,13 @@ output_dir = "output"
 ### Figures 7C+D:
 Run `python mismatched_auc_plots.py`. Modify the directory paths in the script if needed.
 
-### Figures S.9-10:
-First, run `python SLURM_extra_sims.py` (this should generate 105 files to be run) followed by `sh meta_sim_EM.sh`. This will generate the EM files needed for figures S.9-11. Alternatively, for every file in `data` that contains `g251_d25`, run `emsel data/pure_sim/{file_name}_g251_d25.csv EM/pure_sim/{file_name}_g251_d25_Ne5000_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 5000` and `emsel data/pure_sim/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_Ne20000_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 20000` to reanalyze the 251 generations, init freq = 0.25 data under the 'incorrect' Nes.
+### Figure S.9:
+Run `python unconstrained_scatterplot.py`. Modify directory paths as needed.
 
-Then, to generate Figure S.9, set the following parameters at the beginning of the script `file_str_boxplots.py` and run it using `python file_str_boxplots.py`:
+### Figures S.10-11:
+First, run `python SLURM_extra_sims.py` (this should generate 105 files to be run) followed by `sh meta_sim_EM.sh`. This will generate the EM files needed for figures S.10-12. Alternatively, for every file in `data` that contains `g251_d25`, run `emsel data/pure_sim/{file_name}_g251_d25.csv EM/pure_sim/{file_name}_g251_d25_Ne5000_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 5000` and `emsel data/pure_sim/{file_name}_g251_d25.csv EM/{file_name}_g251_d25_Ne20000_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -Ne 20000` to reanalyze the 251 generations, init freq = 0.25 data under the 'incorrect' Nes.
+
+Then, to generate Figure S.10, set the following parameters at the beginning of the script `file_str_boxplots.py` and run it using `python file_str_boxplots.py`:
 ```
 sel_strs = [.005, .01, .025, .05]
 num_gens = 251
@@ -110,12 +113,12 @@ file_strs = ["Ne5000_", "", "Ne20000_"]
 blank_name_str = "Ne10000_"
 ```
 
-To generate Figure S.10, run `python Ne_misspec_qqs.py`. Modify the directory paths in the script if needed.
+To generate Figure S.11, run `python Ne_misspec_qqs.py`. Modify the directory paths in the script if needed.
 
-### Figure S.11:
+### Figure S.12:
 If you have not already run `python SLURM_extra_sims.py` for Figures S.9-10 above, do so. Alternatively, for every file in `data` that contains `g251_d25`, run `emsel data/pure_sim/{file_name}_g251_d25_data.csv EM/{file_name}_g251_d25_ns100_linear_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -hs 100 --hidden_interp linear --ic_update_type fixed`, `emsel data/pure_sim/{file_name}_g251_d25_data.csv EM/{file_name}_g251_d25_linear_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output --hidden_interp linear --ic_update_type fixed` and `emsel data/pure_sim/{file_name}_g251_d25_data.csv EM/{file_name}_g251_d25_fixed_ic_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output -ic_update_type fixed` to reanalyze the 251 generations, init freq = 0.25 data under the (100 linearly interpolated hidden states, 500 linearly interpolated hidden states, 500 chebyshev interpolated hidden states, and 500 chebyshev interpolated hidden states but no initial condition estimation) conditions, respectively.
 
-Then, set the parameters at the beginning of the script `file_str_boxplots.py` identical to those for Figure S.9 above, though with `file_strs = ["ns100_linear_", "linear_", "fixed_ic_", ""]` and `blank_name_str = "standard_"` instead, and run it using `python file_str_boxplots.py`.
+Then, set the parameters at the beginning of the script `file_str_boxplots.py` identical to those for Figure S.10 above, though with `file_strs = ["ns100_linear_", "linear_", "fixed_ic_", ""]` and `blank_name_str = "standard_"` instead, and run it using `python file_str_boxplots.py`.
 
 ## Figure 6:
 This figure requires additional simulations. Proceed via the following:
@@ -221,13 +224,13 @@ output_dir = "output/ibdne"
 Run `python box_and_strip_plots.py` with the same configuration as Figure 9A, but with `cond_only = True`.
 
 
-## Figures S.12-S.14:
+## Figures S.13-S.15:
 Run `emsel-sim data/real_matched -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched data/GB_v54.1_capture_only_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table -Ne 9715` to generate the data-matched simulations. Then, repeat all steps used to generate Figures 9-11 above, replacing `"ibdne"` with `"real_matched"` everywhere it appears (i.e. setting `EM_dir = "EM/real_matched"`, etc.).
 
-## Figure S.15:
+## Figure S.16:
 Run `python plot_ibdne_trajectory.py`.
 
-## Figure S.16:
+## Figure S.17:
 This figure requires additional simulations. Proceed via the following:
 
 1. Run `python SLURM_Ne_others_sim.py` twice, once with `subdirectory = "ibdne"` and once with `subdirectory = "real_matched"` at the beginning of the script, each followed by `sh meta_sim_EM.sh`. This will simulate the additional datasets needed to generate the Ne boxplots.
@@ -253,8 +256,8 @@ labels = ["Real matched", "IBDNe"]
 EM_dirs = ["EM/real_matched/boxplots", "EM/ibdne/boxplots"]
 ```
 
-## Figure S.17:
-This figure requires the simulations used to generate Figure S.16 to be completed as well. Then, run `python flat_ne_plots.py` to generate this figure.
+## Figure S.18:
+This figure requires the simulations used to generate Figure S.17 to be completed as well. Then, run `python flat_ne_plots.py` to generate this figure.
 
 ## Figure 22A:
 1. Run `python permute_data_matched.py`.

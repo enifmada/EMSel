@@ -27,7 +27,7 @@ genodata_type = "capture_only"
 classification_types = ["add", "dom", "het", "rec"]
 ```
 
-## Figures 12, 13A, S.18-20, (S.23-30)A, Table 1*, Tables S.1-S.3*
+## Figures 12, 13A, S.24-26, (S.30-37)A, Table 1*, Tables S.1-S.3*
 
 Set the following parameters at the beginning of the script `gb_figures.py` and run it using `python gb_figures.py`:
 ```
@@ -40,7 +40,7 @@ classification_types = ["add", "dom", "rec", "het"]
 
 Note that the asterisk after the tables denotes that the generated tables are lacking the correct data in the "Gene(s)" column and confidence intervals for the selection coefficient estimates. These two datapoints are manually added post-hoc, though the script to simulate and analyze the data for the bootstrapped intervals, `sim_bootstraps.py`, is provided.
 
-## Figures 13B, (S.31-32)B
+## Figures 13B, (S.38-39)B
 
 Set the following parameters at the beginning of the script `mathieson_manhattans.py` and run it using `python mathieson_manhattans.py`:
 ```
@@ -48,7 +48,7 @@ output_dir = "output"
 genodata_type = "capture_only"
 ```
 
-## Figures 13C+D, (S.23-30)B
+## Figures 13C+D, (S.30-37)B
 
 Set the following parameters at the beginning of the script `plot_binned_trajectories.py` and run it using `python plot_binned_trajectories.py`:
 ```
@@ -59,7 +59,7 @@ genodata_type = "capture_only"
 classification_types = ["add", "dom", "rec", "het"]
 ```
 
-## Figures 14, S.17
+## Figures 14, S.23
 
 To generate these figures, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, several scripts must be run:
 1. Run `python permute_gb_data.py` with the following parameters at the beginning of the script:
@@ -86,7 +86,7 @@ genodata_type = "capture_only"
 
 This will add the necessary sub-dictionaries to the `agg_data.pkl` file. Then, re-run `python gb_figures.py`, changing the classification_types line to `classification_types = ["full"]` at the beginning of the script.
 
-## Figures S.14+S.15
+## Figures S.20+S.21
 
 Set the following parameters at the beginning of the script `plot_means_and_missingness.py` and run it using `python plot_means_and_missingness.py`:
 ```
@@ -94,11 +94,11 @@ output_dir = "output"
 genodata_type = "capture_only"
 ```
 
-## Figure S.16
+## Figure S.22
 
 Repeat steps 4-5 of the "All figures" pipeline, replacing `capture_only` with `capture_SG` everywhere it appears, and adding the option `--selection_modes neutral add` to the `emsel` command if you are not using the SLURM script. Then, rerun `python combine_split_runs.py`, `python aggregate_data.py` and `python gb_figures.py`, the latter two with `genodata_type = capture_SG` and `classification_types = ["add"]` substituted for their respective lines in the parameters at the top of the script.
 
-## Figure S.21
+## Figure S.28
 
 Set the following parameters at the beginning of the script `plot_genomewide_correlations.py` and run it using `python plot_genomewide_correlations.py`:
 ```
@@ -106,9 +106,9 @@ output_dir = "output"
 genodata_type = "capture_only"
 ```
 
-## Figure S.22B
+## Figure S.29B
 
-If you have not already done so to create Figures 14/S.17, run `python permute_gb_data.py`:
+If you have not already done so to create Figures 14/S.17, run `python permute_gb_data.py` with the following parameters at the top of the script:
 ```
 data_dir = "data"
 output_dir = "output"

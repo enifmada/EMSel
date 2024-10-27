@@ -6,8 +6,8 @@ from emsel.emsel_util import plot_qq
 from scipy.stats import chi2
 
 ###### MODIFY
-EM_dir = "EM"
-output_dir = "output"
+EM_dir = "EM/pure_sim"
+output_dir = "output/pure_sim"
 
 ###### DO NOT MODIFY
 

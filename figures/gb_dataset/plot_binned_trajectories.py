@@ -76,7 +76,7 @@ for l_i, lead_snp in enumerate(lead_snp_idxs):
         axstext = r"$\bf{C}$"
     else:
         axstext = r"$\bf{B}$"
-    axs.text(-.2, .97, axstext,fontsize=13,transform=axs.transAxes)
+    #axs.text(-.2, .97, axstext,fontsize=13,transform=axs.transAxes)
     axs.legend()
     axs.set_ylim([-0.05,1.05])
     axs.axhline(0, lw=.5, ls="--", color="k", alpha=.5)

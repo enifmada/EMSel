@@ -10,8 +10,9 @@ import pandas as pd
 data_dir = "data"
 EM_dir = "EM"
 output_dir = "output"
-genodata_type = "capture_only"
-classification_types = ["add", "dom", "rec", "het"]
+genodata_type = "capture_SG"
+classification_types = ["add"]#["add", "dom", "rec", "het"]
+suffix = ""
 
 ###### DO NOT MODIFY
 
@@ -40,17 +41,11 @@ chroms = range(1,23)
 alpha = .05
 scatter_markersize = 2
 scatter_bh_width = .75
-complete_agg_data_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_agg_data.pkl")
+complete_agg_data_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_{suffix}agg_data.pkl")
 onep_classification_types = ["add", "dom", "rec", "het"]
 all_classification_types = ["add", "dom", "rec", "het", "full"]
 with open(complete_agg_data_path, "rb") as file:
     cdata = pickle.load(file)
-p_bhs = []
-for c_type in onep_classification_types:
-    with open(Path(f"{output_dir}/GB_v54.1_{genodata_type}_{c_type}_bh.pkl"), "rb") as file:
-        snp_df = pickle.load(file)
-    p_bhs.append(-np.log10(snp_df["p_bh"]))
-avg_bh = np.mean(p_bhs)
 all_windows = {}
 for c_type in classification_types:
     with open(Path(f"{output_dir}/GB_v54.1_{genodata_type}_{c_type}_bh.pkl"), "rb") as file:
@@ -129,6 +124,7 @@ for c_type in classification_types:
     sw_alt = []
     sw_chridxmaxs = []
     sw_genes = []
+    last_col_name = r"$\hat{s}(p_{min})$" if c_type != "full" else r"$\widehat{s_1, s_2}(p_{min})$"
     for sig_window in valid_windows:
         full_window = np.arange(sig_window[0], sig_window[-1]+1)
         lpos = cdata["all_loc_per_chrom"][min(sig_window)]
@@ -144,10 +140,7 @@ for c_type in classification_types:
         sw_ref.append(cdata["all_ref_allele"][full_window[window_argmax]])
         sw_alt.append(cdata["all_alt_allele"][full_window[window_argmax]])
         sw_spmax.append(cdata["all_s"][f"{c_type}_s"][full_window[np.argmax(window_p_vals)]])
-        if c_type != "full":
-            sw_llmax.append(cdata["all_ll"][f"{c_type}_ll"][full_window[np.argmax(window_p_vals)]])
-        else:
-            sw_llmax.append(0)
+        sw_llmax.append(cdata["all_ll"][f"{c_type}_ll"][full_window[np.argmax(window_p_vals)]])
         sw_chrom = int(cdata["all_chrom"][sig_window[0]])
         sw_chrs.append(sw_chrom)
         sw_nums.append(len(sig_window))
@@ -160,19 +153,22 @@ for c_type in classification_types:
         sw_chridxmaxs.append(full_window[window_argmax]-cdata["all_loc"][f"chr_{sw_chrom}_idx_offset"])
         sw_genes.append("TBD")
     if len(sw_lpos) > 0:
+        if c_type == "full":
+            sw_spmax = [f"({s_val[0]:.4f}, {s_val[1]:.4f})" for s_val in sw_spmax]
         sw_array = np.array([sw_type, sw_chrs, sw_lpos, sw_rpos, sw_raw_nums, sw_nums, sw_pmax, sw_spmax, sw_llmax,
                              sw_idxmax, sw_argpmax, sw_rsidmax, sw_ref, sw_alt, sw_raw_snps, sw_snps, sw_chridxmaxs, sw_genes]).T
-        brown_windows = pd.DataFrame(sw_array, columns=["Sel. type", "Chr.", "Left pos.", "Right pos.", "Raw", "Post", r"$-\log_{10}p_{min}$", r"$\hat{s}(p_{min})$", r"ll at $s(p_{min})$", "SNP index of max.", "Chr pos of max.", "Lead SNP", "Ref.", "Alt.", "Raw_SNP_list", "Post_SNP_list", "SNP. index of max (on chr).", "Gene(s)"])
+        brown_windows = pd.DataFrame(sw_array, columns=["Sel. type", "Chr.", "Left pos.", "Right pos.", "Raw", "Post", r"$-\log_{10}p_{min}$", last_col_name, r"ll at $s(p_{min})$", "SNP index of max.", "Chr pos of max.", "Lead SNP", "Ref.", "Alt.", "Raw_SNP_list", "Post_SNP_list", "SNP. index of max (on chr).", "Gene(s)"])
         brown_windows["Genomic region (hg19)"] = brown_windows.apply(combine_pos, axis=1)
         brown_windows[r"$-\log_{10}p_{min}$"] = brown_windows[r"$-\log_{10}p_{min}$"].astype(float)
-        brown_windows[r"$\hat{s}(p_{min})$"] = brown_windows[r"$\hat{s}(p_{min})$"].astype(float)
+        if c_type != "full":
+            brown_windows[last_col_name] = brown_windows[last_col_name].astype(float)
         brown_windows = brown_windows[["Sel. type", "Chr.", "Genomic region (hg19)", "Gene(s)", "Lead SNP", "Ref.", "Alt.",
-             "Raw", "Post", r"$-\log_{10}p_{min}$", r"$\hat{s}(p_{min})$",
+             "Raw", "Post", r"$-\log_{10}p_{min}$", last_col_name,
              r"ll at $s(p_{min})$", "SNP index of max.", "Chr pos of max.",
              "Raw_SNP_list", "Post_SNP_list", "SNP. index of max (on chr)."]]
         brown_windows.to_latex(f"{output_dir}/{genodata_type}_{c_type}_sig_windows.tex", float_format=special_format,
                                columns=["Chr.", "Genomic region (hg19)", "Gene(s)", "Lead SNP", "Ref.", "Alt.",
-                                         "Raw", "Post", r"$-\log_{10}p_{min}$", r"$\hat{s}(p_{min})$"],
+                                         "Raw", "Post", r"$-\log_{10}p_{min}$", last_col_name],
                                index=False, column_format="cccccccccc")
 
         with open(f"{output_dir}/{genodata_type}_{c_type}_sig_windows.pkl", "wb") as file:

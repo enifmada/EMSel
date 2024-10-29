@@ -234,7 +234,7 @@ def plot_one_ll_grid(fig, axs, s1_grid, s2_grid, ll_grid, vmin, vmax, s1_label =
         axs.set_ylabel("$s_2$")
     axs.set_aspect("equal")
 
-def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", thin=False):
+def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", thin=False, rasterized=False):
     assert len(logps) == len(labels)
     len_ps = logps[0].shape[0]
     xrange = np.arange(1, len_ps+1)
@@ -253,11 +253,11 @@ def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", th
         else:
             idxs = np.arange(len_ps)
         if colors:
-            axins.plot(xrange[idxs] / len_ps, np.power(10, -sorted_logps)[idxs], lw=2, label=labels[i], color=colors[i])
-            axs.plot(-np.log10(xrange[idxs] / len_ps), sorted_logps[idxs], ".", lw=2, color=colors[i])
+            axins.plot(xrange[idxs] / len_ps, np.power(10, -sorted_logps)[idxs], lw=2, label=labels[i], color=colors[i], rasterized=rasterized)
+            axs.plot(-np.log10(xrange[idxs] / len_ps), sorted_logps[idxs], ".", lw=2, color=colors[i], rasterized=rasterized)
         else:
-            axins.plot(xrange[idxs] / len_ps, np.power(10, -sorted_logps)[idxs], lw=2, label=labels[i])
-            axs.plot(-np.log10(xrange[idxs] / len_ps), sorted_logps[idxs], ".", lw=2)
+            axins.plot(xrange[idxs] / len_ps, np.power(10, -sorted_logps)[idxs], lw=2, label=labels[i], rasterized=rasterized)
+            axs.plot(-np.log10(xrange[idxs] / len_ps), sorted_logps[idxs], ".", lw=2, rasterized=rasterized)
 
     unlog_max_y = np.power(10, -max_y)
     lin_xspace = np.linspace(unlog_max_y/2, len_ps+.9, num_conf_pts)

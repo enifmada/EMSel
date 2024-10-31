@@ -40,7 +40,7 @@ ndict["init_dist"] = init_dist
 neutral_filename = params_dict_to_str(**ndict)
 
 
-fig, axs = plt.subplots(1,1,figsize=(3.1,3.1), layout="constrained", dpi=1500)
+fig, axs = plt.subplots(1,1,figsize=(3.1,3.1), layout="constrained")
 axs.text(-.2, .97, r"$\bf{A}$", fontsize=13, transform=axs.transAxes)
 axins = axs.inset_axes([.67, .11, .28, .28])
 logps = []
@@ -76,5 +76,5 @@ axs.plot(-np.log10(np.arange(1, len_ps + 1) / len_ps),
 handles, labels = axins.get_legend_handles_labels()
 axs.legend(handles, labels, loc="upper right")
 
-fig.savefig(Path(f"{output_dir}/rf_permutations_rasterized.pdf"), format="pdf", bbox_inches="tight", dpi=500)
+fig.savefig(Path(f"{output_dir}/rf_permutations_rasterized.pdf"), format="pdf", bbox_inches="tight", dpi=1000)
 plt.close(fig)

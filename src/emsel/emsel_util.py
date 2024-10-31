@@ -266,7 +266,7 @@ def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", th
     geom_sigma = np.sqrt((geom_xspace*(len_ps-geom_xspace+1))/((len_ps+2)*(len_ps+1)**2))
 
     axins.plot([0, 1], [0, 1], color="k", lw=1)
-    axins.fill_between(lin_xspace/len_ps, lin_xspace/len_ps-1.96*lin_sigma, lin_xspace/len_ps+1.96*lin_sigma, color="k", alpha=.2)
+    axins.fill_between(lin_xspace/len_ps, lin_xspace/len_ps-1.96*lin_sigma, lin_xspace/len_ps+1.96*lin_sigma, color="k", alpha=.2, rasterized=rasterized)
     axins.set_xlim([0, 1])
     axins.set_ylim([0, 1])
     axs.plot([0, max_y * 1.05], [0, max_y * 1.05], color="k", lw=1)
@@ -274,7 +274,7 @@ def plot_qq(axs, axins, logps, labels, colors=None, legend_loc="upper right", th
     lower_loglim = -np.log10(np.array([beta.ppf(.025, i, len_ps-i) for i in range(1,len_ps)]))
     conf_xspace = -np.log10((np.arange(1,len_ps)-.5)/len_ps)
     #lower_loglim = -np.log10(np.clip(geom_xspace/len_ps+1.96*geom_sigma, np.power(10, -max_y*2), None))
-    axs.fill_between(conf_xspace, lower_loglim, upper_loglim, color="k", alpha=.08)
+    axs.fill_between(conf_xspace, lower_loglim, upper_loglim, color="k", alpha=.08, rasterized=rasterized)
 
 
     axs.get_xaxis().set_major_formatter(StrMethodFormatter('{x:,.1f}'))

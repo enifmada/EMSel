@@ -10,8 +10,8 @@ import pandas as pd
 data_dir = "data"
 EM_dir = "EM"
 output_dir = "output"
-genodata_type = "capture_SG"
-classification_types = ["add"]#["add", "dom", "rec", "het"]
+genodata_type = "capture_only"
+classification_types = ["add", "dom", "rec", "het"]
 suffix = ""
 
 ###### DO NOT MODIFY
@@ -175,9 +175,9 @@ for c_type in classification_types:
             pickle.dump(brown_windows, file)
 
     #manhattan plots
-    fig, axs = plt.subplots(1,1,figsize=(6.25,2.75), layout="constrained", dpi=1500)
-    axs.plot(cdata["all_loc_all_chrom"][cdata["all_chrom"]%2==1], cdata["all_p"][f"{c_type}_p"][cdata["all_chrom"]%2==1], "o", markersize=1.5, color="#888888")
-    axs.plot(cdata["all_loc_all_chrom"][cdata["all_chrom"]%2==0], cdata["all_p"][f"{c_type}_p"][cdata["all_chrom"]%2==0], "o", markersize=1.5, color="#87CFFF")
+    fig, axs = plt.subplots(1,1,figsize=(6.25,2.75), layout="constrained")
+    axs.plot(cdata["all_loc_all_chrom"][cdata["all_chrom"]%2==1], cdata["all_p"][f"{c_type}_p"][cdata["all_chrom"]%2==1], "o", markersize=1.5, color="#888888", rasterized=True)
+    axs.plot(cdata["all_loc_all_chrom"][cdata["all_chrom"]%2==0], cdata["all_p"][f"{c_type}_p"][cdata["all_chrom"]%2==0], "o", markersize=1.5, color="#87CFFF", rasterized=True)
     axs.axhline(-np.log10(snp_df["p_bh"]), ls="--", c="r", label=r"BH thresh.", lw=.75)
     axs.set_ylabel(r"$-\log_{10}(p)$")
     axs.set_xlabel("Chromosome")
@@ -189,14 +189,14 @@ for c_type in classification_types:
     axs.legend()
     axs.set_ylim([0, 18])
     axs.set_xlim([0, cdata["all_loc_all_chrom"][-1]*1.001])
-    fig.savefig(f"{output_dir}/{genodata_type}_{c_type}_manhattan.png", format="png", bbox_inches="tight")
+    fig.savefig(f"{output_dir}/{genodata_type}_{c_type}_manhattan_rasterized.pdf", format="pdf", bbox_inches="tight", dpi=1000)
     plt.close(fig)
 
 #qq plots
 if "full" in classification_types:
-    fig, axs = plt.subplots(1,1,figsize=(3.1, 3.1),layout="constrained", dpi=1500)
+    fig, axs = plt.subplots(1,1,figsize=(3.1, 3.1),layout="constrained")
     axins = axs.inset_axes([.67, .11, .28, .28])
     logps = [cdata['all_p'][f'{ctype}_p'] for ctype in all_classification_types]
     labels = convert_from_abbrevs(all_classification_types, shorthet=True)
-    plot_qq(axs, axins, logps, labels, legend_loc="upper right", thin=True)
-    fig.savefig(f"{output_dir}/{genodata_type}_all_qqs.png", format="png", bbox_inches="tight")
+    plot_qq(axs, axins, logps, labels, legend_loc="upper right", thin=True, rasterized=True)
+    fig.savefig(f"{output_dir}/{genodata_type}_all_qqs_rasterized.pdf", format="pdf", bbox_inches="tight", dpi=1000)

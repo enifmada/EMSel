@@ -1,3 +1,5 @@
+<!--- emsel-sim data/real_matched -s .005 --sel_types neutral --seed 5 -n 10000 --data_matched data/real_matched/neutral_g125_dal_special_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table --suffix resim -Ne 9987 --->
+
 # Simulation studies
 
 The scripts in this directory can be used to recreate all figures in Sections 3 (Figures 4-8) and 4.2 (Figures 9-11) of the manuscript, as well as figures S.1-S.11 and Figure S.22A in the Supplemental Material. This README is organized by what simulations need to be run to produce a given set of figures, with the analysis commands and scripts to produce the figures noted therein.

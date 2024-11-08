@@ -263,6 +263,6 @@ This figure requires the simulations used to generate Figure S.17 to be complete
 
 ## Figure 22A:
 1. Run `python permute_data_matched.py`.
-2. Run `python SLURM_example.py` with `EM_dir = Path('EM/real_matched/boxplots')` and `data_dir = Path('data/real_matched/boxplots')` at the beginning of the script. This should generate 100 files to be run. Then, run `sh meta_sim_EM.sh`. Alternatively, for i in range(100), run `emsel data/real_matched/boxplots/neutral_g125_dal_special_perm{i}_data.csv EM/real_matched/boxplots/neutral_g125_dal_special_perm{i}_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output`.
+2. Run `python SLURM_example.py` with `EM_dir = Path('EM/real_matched/permutations')` and `data_dir = Path('data/real_matched/permutations')` at the beginning of the script. This should generate 100 files to be run. Then, run `sh meta_sim_EM.sh`. Alternatively, for i in range(100), run `emsel data/real_matched/boxplots/neutral_g125_dal_special_perm{i}_data.csv EM/real_matched/boxplots/neutral_g125_dal_special_perm{i}_EM --time_after_zero -maf 0 --min_sample_density 0 --full_output`.
 3. If you ran the SLURM script, run `python combine_split_runs.py`. This will reformat the files (but not actually combine anything). You should have 100 files. 
 4. Run `python plot_data_matched_permutations.py`.

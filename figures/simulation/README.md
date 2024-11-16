@@ -37,8 +37,8 @@ cond_only = False
 
 data_dir = "data/pure_sim"
 EM_dir = "EM/pure_sim"
-classified_dir = "classified"
 output_dir = "output/pure_sim"
+classified_dir = "classified"
 ```
 
 ### Figures 3B+C, S.1-8B+C:
@@ -69,8 +69,8 @@ num_gens_list = [101, 251, 1001]
 init_dists = [.005, .25, "recip"]
 
 EM_dir = "EM/pure_sim"
-classified_dir = "classified"
 output_dir = "output/pure_sim"
+classified_dir = "classified"
 ```
 
 ### Figure 5:
@@ -150,9 +150,9 @@ EM_dirs = ["EM/pure_sim/boxplots", "EM/pure_sim/boxplots", "EM/pure_sim/boxplots
 
 ## Figures 9-11:
 1. Run the pipeline in the [figures/gb_dataset/](../gb_dataset/) folder up to the point where the `GB_v54.1_capture_only_means.txt` and `GB_v54.1_capture_only_missingness.txt` files are created (i.e. run the "All figures" section), then copy these two files and the `GB_v54.1_capture_only_sample_sizes.table` file into `data`. Additionally, copy the files `ibdne_raw.txt` and `ibdne_original.txt` from [sample_datasets](../../sample_datasets/)_to the `data` folder.
-2. Run `emsel-sim data/ibdne -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched data/GB_v54.1_capture_only_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table --vary_Ne data/ibdne_raw.txt`. This should generate 21 files, each with "g125_dal_special" somewhere in their name.
+2. Run `emsel-sim data/ibdne -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 9734 -n 10000 --data_matched data/GB_v54.1_capture_only_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table --vary_Ne data/ibdne_raw.txt`. This should generate 21 files, each with "g125_dal_special" somewhere in their name.
 3. Run `python SLURM_Ne_computation.py` with `EM_dir = Path('EM/ibdne')` and `data_dir = Path('data/ibdne')` at the beginning of the script. This will generate 21 files to be run. Then, run `sh meta_sim_EM.sh` to submit the jobs to the cluster.
-4. Run `python interpolate_Ne_grid.py` with `EM_dir = "EM/ibdne"` at the beginning of the script. This should output `Estimated Ne: 9987`. If it does not, modify the line `Ne = 9987` in `SLURM_example.py` to the correct value.
+4. Run `python interpolate_Ne_grid.py` with `EM_dir = "EM/ibdne"` at the beginning of the script. This should output `Estimated Ne: 35313`. If it does not, modify the line `Ne = 35313` in `SLURM_example.py` and `plot_data_matched_permutations.py` to the correct value, as well as the the line `EM_suffix = "Ne35313_"` in `bootstrap_fitting.py`, `box_and_strip_plots.py`, `d2_qqs_and_confusiontables.py`, `extract_means.py`, and `qqs_and_aucs.py`.
 5. Run `python SLURM_example.py` with `EM_dir = Path('EM/ibdne')` and `data_dir = Path('data/ibdne')` at the beginning of the script. This should generate 105 files to be run. Then, run `sh meta_sim_EM.sh` to submit the jobs to the cluster. Alternatively, for each file created, run `emsel data/ibdne/{file_name}_data.csv EM/{file_name}_EM --time_after_zero --full_output`.
 
 If you ran the SLURM script, run `python combine_split_runs.py`. You should have 21 files.
@@ -170,8 +170,8 @@ cond_only = False
 
 data_dir = "data/ibdne"
 EM_dir = "EM/ibdne"
-classified_dir = "classified"
 output_dir = "output/ibdne"
+classified_dir = "classified"
 ```
 
 ### Figure 9B+C:
@@ -186,16 +186,19 @@ output_dir = "output/ibdne"
 ```
 
 ### Figure 9D+10:
-First, fit the generalized gamma distribution to the unconstrained EM of the permuted data. To do this, set the following parameters at the beginning of the script `permute_target_dataset.py` and run it using `python permute_target_dataset.py`:
+First, fit the generalized gamma distribution to the bootstrapped dataset. To do this, set the following parameters at the beginning of the script `extract_means.py` and run it using `python extract.py`:
 ```
 num_gens_list = [125]
 init_dists = ["real_special"]
 
+EM_dir = "EM/ibdne"
 data_dir = "data/ibdne"
 ```
+
+Next, run the command `emsel-sim data/ibdne -s .005 --sel_types neutral --seed 9734 -n 10000 --data_matched data/ibdne/neutral_g125_dal_special_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table --suffix resim -Ne 35313` to simulate the bootstrapped dataset. 
 Then, run EMSel on the resulting dataset by re-running `python SLURM_example.py` and `sh meta_sim_EM.sh` with the same parameters as before (it will not re-run the previous analysis as long as the EM .pkl files have been created).
 
-Next, set the following parameters at the beginning of the script `permutation_fitting.py` and run it using `python permutation_fitting.py`:
+Next, set the following parameters at the beginning of the script `bootstrap_fitting.py` and run it using `python bootstrap_fitting.py`:
 ```
 num_gens_list = [125]
 init_dists = ["real_special"]
@@ -211,8 +214,8 @@ num_gens_list = [125]
 init_dists = ["real_special"]
 
 EM_dir = "EM/ibdne"
-classified_dir = "classified"
 output_dir = "output/ibdne"
+classified_dir = "classified"
 ```
 
 ### Figure 11:
@@ -220,7 +223,7 @@ Run `python box_and_strip_plots.py` with the same configuration as Figure 9A, bu
 
 
 ## Figures S.13-S.15:
-Run `emsel-sim data/real_matched -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched data/GB_v54.1_capture_only_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table -Ne 9715` to generate the data-matched simulations. Then, repeat all steps used to generate Figures 9-11 above, replacing `"ibdne"` with `"real_matched"` everywhere it appears (i.e. setting `EM_dir = "EM/real_matched"`, etc.).
+Run `emsel-sim data/real_matched -s .005 .01 .025 .05 --sel_types neutral add dom rec over under --seed 5 -n 10000 --data_matched data/GB_v54.1_capture_only_means.txt data/GB_v54.1_capture_only_missingness.txt data/GB_v54.1_capture_only_sample_sizes.table -Ne 9715` to generate the data-matched simulations. Then, repeat all steps used to generate Figures 9-11 above, replacing `"ibdne"` with `"real_matched"` everywhere it appears (i.e. setting `EM_dir = "EM/real_matched"`, etc.). Additionally, the Ne estimated should be 10496 rather than 35313.
 
 ## Figure S.16:
 Run `python plot_ibdne_trajectory.py`.

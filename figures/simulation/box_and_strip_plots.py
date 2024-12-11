@@ -18,7 +18,7 @@ init_dists = [.005, .25, "recip"]
 #init_dists = ["real_special"]
 
 #set to True for strip plots (e.g. Figure 6)
-cond_only = True
+cond_only = False
 
 data_dir = "data/pure_sim"
 EM_dir = "EM/pure_sim"

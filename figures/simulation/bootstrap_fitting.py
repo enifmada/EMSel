@@ -8,11 +8,11 @@ from emsel.emsel_util import params_dict_to_str
 num_gens_list = [101, 251, 1001]
 init_dists = [.005, .25, "recip"]
 
-num_gens_list = [125]
-init_dists = ["real_special"]
+#num_gens_list = [125]
+#init_dists = ["real_special"]
 
-EM_dir = "EM/real_matched"
-output_dir = "output/real_matched"
+EM_dir = "EM/pure_sim"
+output_dir = "output/pure_sim"
 ###### DO NOT MODIFY
 
 if "matched" in EM_dir:

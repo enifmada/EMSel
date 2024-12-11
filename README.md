@@ -79,9 +79,10 @@ and the following optional arguments:
 
 --min_sample_density <float, default=0.1>
     Minimum sample density to filter replicates by.
-    Replicates with sum(num_samples) < (max_samples * min_sample_density_thresh) are masked. max_samples is
-    calculated correctly (inferring haploids/diploids) from a VCF, and simply computed as max(sum(num_samples, axis=1))
-    for CSVs, where the sum is taken across timepoints for each replicate.
+    Replicates with sum(num_samples) < (max_samples * min_sample_density_thresh) are masked.
+    max_samples is calculated correctly (inferring haploids/diploids) from a VCF, and simply
+    computed as max(sum(num_samples, axis=1)) for CSVs, where the sum is taken across
+    timepoints for each replicate.
 
 
 --s_init <2 floats, default=0 0>
@@ -89,16 +90,19 @@ and the following optional arguments:
 
 
 -sid, --starting_init_dist <str, default='uniform'>
-    Starting initial distribution (pi_0 in HMM language) for initialization of the HMM. Options are: 
+    Starting initial distribution (pi_0 in HMM language) for  HMM initialization. Options are: 
     - "uniform" - uniform, equiprobable prior (recommended/default)
-    - "data_mean" - each replicate's initial condition is the allele frequency averaged across all samples.
-    - "delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a delta function at p = x.
-    - "beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the initial condition to
-         a symmetric beta function beta(alpha, alpha).
-    - "spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set the initial condition to a
-         mixture of uniform with weight 1-x and a delta function at p = y with weight x.
-    Unless --ic_update_type fixed is provided as an additional command line argument, this starting initial distribution
-    will be re-estimated as part of the EM procedure.
+    - "data_mean" - each replicate's initial condition is the allele frequency averaged across
+        all samples.
+    - "delta" - use the "--ic_dict p x", where 0 <= x <= 1 to set the initial condition to a
+        delta function at p = x.
+    - "beta" - use "--ic_dict beta_coef alpha", where alpha is a real number, to set the
+        initial condition to a symmetric beta function beta(alpha, alpha).
+    - "spikeandslab" - use "--ic_dict spike_frac x spike_loc y", where 0 <= x, y <= 1 to set
+        the initial condition to a mixture of uniform with weight 1-x and a delta function at
+        p = y with weight x.
+    Unless --ic_update_type fixed is provided as an additional command line argument, this
+    starting initial distribution will be re-estimated as part of the EM procedure.
 
 
 --sid_dict <1+ arguments of the form 'str int'>
@@ -111,45 +115,50 @@ and the following optional arguments:
 
 --hidden_interp <str, default='chebyshev'>
     Whether to use Chebyshev nodes for spacing of hidden states (highly recommended) or linear
-    (via --hidden_interp linear). Chebyshev nodes do not impact runtime and appear to significantly improve accuracy
-    of selection coefficient estimation at high selection coefficients, especially for certain modes of selection.
+    (via --hidden_interp linear). Chebyshev nodes do not impact runtime and significantly
+    improve accuracy of selection coefficient estimation at high selection coefficients,
+    especially for certain modes of selection.
 
 
 --ic_update_type <str, default='beta'>
     Method of estimating the initial condition. Options are:
-    - "beta" - estimate the parameters of a beta distribution. Output dictionary values involving
-        the initial distribution will have shape (N,2)
-    - "delta" - estimate the parameter of a delta distribution. Output dictionary values will have shape (N, 1)
-    - "baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for all hidden states.
-        Output dictionary values will have shape (N, Ns), where Ns = the number of hidden states.
-    - "fixed" - do not update the estimated initial condition. Output dictionary values will have shape (N, 1)
+    - "beta" - estimate the parameters of a beta distribution. Output dictionary values
+        involving the initial distribution will have shape (N,2)
+    - "delta" - estimate the parameter of a delta distribution. Output dictionary values
+        will have shape (N, 1)
+    - "baumwelch" - use the standard Baum-Welch EM update rules to estimate the weights for
+        all hidden states. Output dictionary values will have shape (N, Ns), where
+        Ns = the number of hidden states.
+    - "fixed" - do not update the estimated initial condition. Output dictionary values will
+        have shape (N, 1).
     Any other string will raise a ValueError.
 
 
 --selection_modes <1+ str, default='all'>
-    Which modes of selection to analyze under. You can list as many of ["neutral", "add", "dom", "rec", "het", "full"]
-    as you would like. Neutral is automatically run. The default, "all", is a shorthand for running all modes of
-    selection.
+    Which modes of selection to analyze under. You can list as many of
+    ["neutral", "add", "dom", "rec", "het", "full"] as you would like. Neutral is automatically
+    run. The default, "all", is a shorthand for running all modes of selection.
 
 
 --no_neutral
-    Explicitly overrides the requirement that neutral be run for all simulation. Only to be used when parallelizing
-    a simulation across mode of selection.
+    Explicitly overrides the requirement that neutral be run for all simulation. Only to be
+    used when parallelizing a simulation across mode of selection.
 
 --compute_cond
-    Computes the log-likelihood that the allele is segregating at at least time point. Adds a key to the dictionary,
-    "cond_correction_ll" containing an array of size (N,) corresponding to this probability for each replicate.
-    Only used in estimating the effective population size.
+    Computes the log-likelihood that the allele is segregating at at least time point. Adds
+    a key to the dictionary, "cond_correction_ll" containing an array of size (N,)
+    corresponding to this probability for each replicate. Only used in estimating the effective
+    population size.
 
 
 -nc, --num_cores <int, default=1>
-    Number of cores to parallelize over. Joblib is used for parallelization, making EMSel easily parallizable on a
-    computing cluster.
+    Number of cores to parallelize over. Joblib is used for parallelization, making EMSel
+    easily parallizable on a computing cluster.
 
 
 -hs, --hidden_states <int, default=500>
-    Number of hidden states to use in the HMM. Computing time scales as O(hidden states^3), roughly.
-    Accuracy is reduced below approximately 200-250 hidden states.
+    Number of hidden states to use in the HMM. Computing time scales as O(hidden states^3),
+    roughly. Accuracy is reduced below approximately 200-250 hidden states.
 
 
 -t, --tol <float, default=1e-3>
@@ -162,14 +171,15 @@ and the following optional arguments:
 
 
 --min_itercount <int, default=5>
-    Minimum number of iterations for EMSel to run, even if the stopping criterion is met earlier. Removes irregularities
-    in the distribution of log-likelihoods/p-values near 1. However, since p-values near 1 are typically unimportant,
-    setting this to 0 to slightly speed up computation is reasonable.
+    Minimum number of iterations for EMSel to run, even if the stopping criterion is met
+    earlier. Removes irregularities in the distribution of log-likelihoods/p-values near 1.
+    However, since p-values near 1 are typically unimportant, setting this to 0 to slightly
+    speed up computation is reasonable.
 
 
 --info_file <str>
-    When input is a VCF, path to a sample file readable by pandas.read_csv containing a column of IDs matching the IDs
-    in the VCF as well as a column of sampling times
+    When input is a VCF, path to a sample file readable by pandas.read_csv containing a
+    column of IDs matching the IDs in the VCF as well as a column of sampling times
     (in years or generations, use -ytg to normalize to generations if years).
 
 
@@ -178,35 +188,42 @@ and the following optional arguments:
 
 
 --save_csv
-    If input is a VCF, saves a CSV of the same name containing the intermediate conversion of the VCF into
-    (sampling time, total samples, derived alleles) triplets to speed up future runs. Note that the saved CSV will
-    include conversion from years to generations.
+    If input is a VCF, saves a CSV of the same name containing the intermediate conversion
+    of the VCF into (sampling time, total samples, derived alleles) triplets to speed up
+    future runs. Note that the saved CSV will include conversion from years to generations.
 
 
 --full_output
-    Saves a full output file to the same location as the output_EM.csv file (with a .pkl suffix). The full output
-    file is a nested dictionary-of-dictionaries containing the following keys, letting `N_init` and `N` be
-    the number of input and filtered replicates, respectively, in the dataset:
+    Saves a full output file to the same location as the output_EM.csv file (with a .pkl
+    suffix). The full output file is a nested dictionary-of-dictionaries containing the
+    following keys, letting `N_init` and `N` be the number of input and filtered replicates,
+    respectively, in the dataset:
     - `max_samples` (1,) - the maximum number of samples for a single replicate in the dataset.
-    - `sample_mask` (N_init,) - a boolean mask, where True indicates that a given replicate is in the final dataset
-         (i.e. has not been filtered out)
-    - `sample_idxs (N,) - the indices of the filtered replicates with respect to the rows of the initial dataset.
-    - `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality (s1 = s2 = 0).
-    - `neutral_ic` (N, varies) - the estimated initial distribution parameters for each replicate calculated under
-        neutrality. The second dimension depends on which initial distribution is used for calculation.
-    - `neutral_itercount` (N,) - the number of iterations for convergence for each replicate under neutrality.
+    - `sample_mask` (N_init,) - a boolean mask, where True indicates that a given replicate
+         is in the final dataset (i.e. has not been filtered out)
+    - `sample_idxs (N,) - the indices of the filtered replicates with respect to the rows of
+         the initial dataset.
+    - `neutral_ll` (N,) - the log-likelihood for each replicate calculated under neutrality
+         (s1 = s2 = 0).
+    - `neutral_ic` (N, varies) - the estimated initial distribution parameters for each
+        replicate calculated under neutrality. The second dimension depends on which initial
+        distribution is used for calculation.
+    - `neutral_itercount` (N,) - the number of iterations for convergence for each replicate
+        under neutrality.
     - for each mode of selection analyzed under, a sub-dictionary with key `{update_type}_run`
         (e.g. `add_run` for additive selection), containing the following keys:
-          - `s_final` (N, 2) - the maximum-likelihood estimate of the selection coefficients for each replicate.
+          - `s_final` (N, 2) - the maximum-likelihood estimate of the selection coefficients
+              for each replicate.
           - `ll_final` (N,) - the maximum log-likelihood estimate for each replicate.
-          - `ic_dist` (N, varies) - the estimated initial distribution parameters for each replicate. The second
-                dimension depends on which initial distribution is used for calculation.
+          - `ic_dist` (N, varies) - the estimated initial distribution parameters for each
+              replicate. The second dimension depends on which initial distribution is
+              used for calculation.
           - `itercount_hist` (N,) - the number of iterations for convergence for each replicate.
           - `exit_codes` (N,) - exit codes indicating the termination statuts of each replicate.
                See section "Exit Codes".
 
-    Additionally, if the input file is a .vcf, several additional keys are added from the VCF file to facilitate
-    additional data analysis (see the figures/gb_dataset folder), each of shape (N,):
+    Additionally, if the input file is a .vcf, several additional keys are added from the VCF
+    file to facilitate additional data analysis (see the figures/gb_dataset folder), each of shape (N,):
     - `pos` - chromosomal position of each replicate. "variants/POS" from the VCF file.
     - `snp_ids` - "variants/ID" from the VCF file.
     - `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.

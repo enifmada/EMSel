@@ -9,9 +9,9 @@ from emsel.emsel_util import bh_correct, get_1d_s_data_from_type
 data_dir = "data"
 EM_dir = "EM"
 output_dir = "output"
-genodata_type = "capture_SG"
+genodata_type = "capture_only"
 suffix = ""
-classification_types = ["add"]#, "dom", "het", "rec", "full"]
+classification_types = ["add", "dom", "het", "rec", "full"]
 
 ###### DO NOT MODIFY
 chroms = range(1,23)
@@ -62,9 +62,8 @@ for chrom in chroms:
     em_path = Path(f"{EM_dir}/GB_v54.1_{genodata_type}_c{chrom}_{suffix}EM.pkl")
     with open(em_path, "rb") as file:
         hf = pickle.load(file)
-    hf["add_run"]["ic_dist"] = hf["add_run"]["ic_dist"].squeeze()
-    init_mean = hf["add_run"]["ic_dist"][0, :]/(hf["add_run"]["ic_dist"][0, :]+hf["add_run"]["ic_dist"][1, :])
-    agg_data["add_init_mean"] = init_mean
+    init_mean = hf["neutral_ic"][0, :]/(hf["neutral_ic"][0, :]+hf["neutral_ic"][1, :])
+    agg_data["neut_init_mean"] = init_mean
     neutral_ll = hf["neutral_ll"]
     pos = hf["pos"]
     a_ns = np.sum(num_samples, axis=1)
@@ -108,7 +107,7 @@ for chrom in chroms:
             all_loc[f"chr_{chrom+1}_idx_offset"] = all_loc[f"chr_{chrom}_idx_offset"] + all_loc[f"chr_{chrom}"].shape[0]
             all_loc[f"chr_{chrom+1}_pos_offset"] = all_loc[f"chr_{chrom}_pos_offset"] + all_loc[f"chr_{chrom}"][-1]
             all_missingness = np.concatenate((all_missingness, agg_data["a_miss"]))
-            all_means = np.concatenate((all_means, agg_data["add_init_mean"]))
+            all_means = np.concatenate((all_means, agg_data["neut_init_mean"]))
             all_rsid = np.concatenate((all_rsid, agg_data["snp_ids"]))
             all_chrom = np.concatenate((all_chrom, np.zeros_like(agg_data["pos"])+chrom))
             all_ref_allele = np.concatenate((all_ref_allele, agg_data["ref_allele"]))

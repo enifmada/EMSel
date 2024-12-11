@@ -87,10 +87,14 @@ for c_type in classification_types:
                              brown_p[v_window[0]-2:v_window[-1]+2],"^", ms=scatter_markersize, c=colorlist[1], label="Post")
             elif "full" in c_type:
                 window_mask = (snp_df["snp_idx"]>=v_window[0])&(snp_df["snp_idx"]<=v_window[-1])
+                max_loc = np.argmax(snp_df["p"][window_mask])
+                max_class = snp_df["classes"][window_mask][max_loc]
                 for c_i in range(1,len(full_labels)+1):
                     color_mask = window_mask&(snp_df["classes"]==c_i)
                     if (type_sum := color_mask.sum())>0:
                         snp_axs.plot(snp_df["snp_pos"][color_mask], snp_df["p"][color_mask], "o", ms=scatter_markersize, color=colorlist[c_i-1], label=f"{full_labels[c_i-1]} ({type_sum})")
+                    if c_i == max_class:
+                        snp_axs.plot(snp_df["snp_pos"][window_mask][max_loc], snp_df["p"][window_mask][max_loc], "*", ms=scatter_markersize*2.5, color=colorlist[c_i-1])
             snp_axs.axhline(-np.log10(snp_df["p_bh"]), color=colorlist[0], ls="--", lw=scatter_bh_width, label="Raw BH thresh.")
             if "brown" in zoomscatter_type:
                 snp_axs.axhline(bp_bh, color=colorlist[1], ls="--", lw=scatter_bh_width, label="Post BH thresh.")
@@ -189,7 +193,7 @@ for c_type in classification_types:
     axs.legend()
     axs.set_ylim([0, 18])
     axs.set_xlim([0, cdata["all_loc_all_chrom"][-1]*1.001])
-    fig.savefig(f"{output_dir}/{genodata_type}_{c_type}_manhattan_rasterized.pdf", format="pdf", bbox_inches="tight", dpi=1000)
+    fig.savefig(f"{output_dir}/{genodata_type}_{c_type}_manhattan_rasterized.pdf", format="pdf", bbox_inches="tight", dpi=600)
     plt.close(fig)
 
 #qq plots
@@ -199,4 +203,4 @@ if "full" in classification_types:
     logps = [cdata['all_p'][f'{ctype}_p'] for ctype in all_classification_types]
     labels = convert_from_abbrevs(all_classification_types, shorthet=True)
     plot_qq(axs, axins, logps, labels, legend_loc="upper right", thin=True, rasterized=True)
-    fig.savefig(f"{output_dir}/{genodata_type}_all_qqs_rasterized.pdf", format="pdf", bbox_inches="tight", dpi=1000)
+    fig.savefig(f"{output_dir}/{genodata_type}_all_qqs_rasterized.pdf", format="pdf", bbox_inches="tight", dpi=600)

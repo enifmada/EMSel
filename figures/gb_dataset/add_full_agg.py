@@ -22,7 +22,7 @@ all_llr_array = []
 all_het_s_data = []
 
 complete_agg_data_path = Path(f"{output_dir}/GB_v54.1_{genodata_type}_agg_data.pkl")
-gengamma_path = Path(f"{output_dir}/GB_v54.1_capture_only_100k_gengamma_perm_fit.pkl")
+gengamma_path = Path(f"{output_dir}/neutral_g125_dal_special_Ne9715_gengamma_fit.pkl")
 for chrom in chroms:
     base_data_path = Path(f"{data_dir}/GB_v54.1_{genodata_type}_c{chrom}")
 
@@ -72,9 +72,6 @@ with open(Path(f"{output_dir}/GB_v54.1_{genodata_type}_full_bh.pkl"),"wb") as fi
 
 
 cdata["all_p"]["full_p"] = full_p_vals
-
-#this is only necessary so that a later script doesn't throw an error.
-#cdata["all_s"]["full_s"] = cdata["all_s"]["add_s"]
 
 with open(complete_agg_data_path, "wb") as file:
     pickle.dump(cdata, file)

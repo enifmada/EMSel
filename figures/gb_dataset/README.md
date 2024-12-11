@@ -1,6 +1,6 @@
 # GB aDNA Dataset
 
-The scripts in this directory recreate Figures 12-14 of the main text and S.17-S26, S.27B, S.28-S.37 of the Supplementary Material, as well as Table 1 of the main text and Tables S.1-S.4 of the Supplementary Material. This README begins with a set of commands that must be run prior to all figures, then  is organized by which (if any) additional non-plotting scripts must be run to generate a given set of figures. All commands to analyze and produce figures are described therein.
+The scripts in this directory recreate Figures 12-14 of the main text and S.17-S26, S.27B, S.28-S.38 of the Supplementary Material, as well as Table 1 of the main text and Tables S.1-S.4 of the Supplementary Material. This README begins with a set of commands that must be run prior to all figures, then  is organized by which (if any) additional non-plotting scripts must be run to generate a given set of figures. All commands to analyze and produce figures are described therein.
 
 **Prior to running the scripts in this directory, change the current working directory to this folder.** Also, if you have not already, install the additional plotting packages required by running the command
 ```
@@ -40,7 +40,7 @@ classification_types = ["add", "dom", "rec", "het"]
 
 Note that the asterisk after the tables denotes that the generated tables are lacking the correct data in the "Gene(s)" column and confidence intervals for the selection coefficient estimates. These two datapoints are manually added post-hoc, though the script to simulate and analyze the data for the bootstrapped intervals, `sim_bootstraps.py`, is provided.
 
-## Figures 13B, (S.37-38)B
+## Figures 13B, (S.37-38)A
 
 Set the following parameters at the beginning of the script `mathieson_manhattans.py` and run it using `python mathieson_manhattans.py`:
 ```
@@ -48,7 +48,7 @@ output_dir = "output"
 genodata_type = "capture_only"
 ```
 
-## Figures 13C+D, (S.29-36)B
+## Figures 13C+D, (S.29-38)B
 
 Set the following parameters at the beginning of the script `plot_binned_trajectories.py` and run it using `python plot_binned_trajectories.py`:
 ```
@@ -59,7 +59,7 @@ genodata_type = "capture_only"
 classification_types = ["add", "dom", "rec", "het"]
 ```
 
-## Figures 14, S.22
+## Figures 14, S.22, Table S.4
 
 To generate these figures, the unconstrained EM must be classified. For this, the file `neutral_g125_dal_special_Ne9715_gengamma_fit.pkl` file is needed. 
 To generate this file, you have several options:

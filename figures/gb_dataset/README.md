@@ -61,22 +61,15 @@ classification_types = ["add", "dom", "rec", "het"]
 
 ## Figures 14, S.22
 
-To generate these figures, the unconstrained EM must be classified. For this, the `gengamma_params.pkl` file is needed. To generate this file, several scripts must be run:
-1. Run `python permute_gb_data.py` with the following parameters at the beginning of the script:
-```
-data_dir = "data"
-output_dir = "output"
-genodata_type = "capture_only"
-MAF_filter = .05
-min_sample_filter = .1
-```
-This produces 22 files containing a permutation of every SNP in the dataset, as well as a permutation of a random subset of 100,000 SNPs.
+To generate these figures, the unconstrained EM must be classified. For this, the file `neutral_g125_dal_special_Ne9715_gengamma_fit.pkl` file is needed. 
+To generate this file, you have several options:
+1. Copy it from the `sample_datasets` folder to the `output` subfolder of this directory.
+2. If you have already generated Figures S.11-S.13, the EM needed to generate this file has been created. Copy the file `neutral_g125_dal_special_Ne9715_EM.pkl` from `../simulations/real_matched/EM` to the `EM` subfolder of this directory. Run `python gb_bootstrap_fitting.py` to generate the `gengamma_fit.pkl` file.
+3. If you have not generated these figures and do not want to, change your working directory to `../simulations/real_matched`. Then, run the first command in the "Figures S.11-S.13" section of the `simulations` README to generate the dataset followed by `emsel data/real_matched/neutral_g125_dal_special_data.csv EM/neutral_g125_dal_special_Ne9715_EM --time_after_zero --full_output --Ne 9715` to analyze it. Lastly, opy the file `neutral_g125_dal_special_Ne9715_EM.pkl` from `../simulations/real_matched/EM` to the `EM` subfolder of this directory. Run `python gb_bootstrap_fitting.py` to generate the `gengamma_fit.pkl` file.
 
-2. Re-run `python SLURM_example.py` with the same script parameters as was used for the original EM-HMM runs in the first section, and submit the 23 created jobs with `sh meta_gb_em.sh`.
+Once the file `neutral_g125_dal_special_Ne9715_gengamma_fit.pkl` exists in the `output` subfolder of this directory, proceed via the following:
 
-3. Run `python combine_split_runs.py` with `EM_dir = "EM"`, followed by `python gb_permutation_fitting.py`.
-
-4. Set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:
+5. Set the following parameters at the beginning of the script `add_full_agg.py` and run it using `python add_full_agg.py`:
 ```
 data_dir = "data"
 EM_dir = "EM"

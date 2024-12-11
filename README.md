@@ -198,7 +198,7 @@ and the following optional arguments:
     suffix). The full output file is a nested dictionary-of-dictionaries containing the
     following keys, letting `N_init` and `N` be the number of input and filtered replicates,
     respectively, in the dataset:
-    - `max_samples` (1,) - the maximum number of samples for a single replicate in the dataset.
+    - `max_samples` (1,) - the max number of samples for a single replicate in the dataset.
     - `sample_mask` (N_init,) - a boolean mask, where True indicates that a given replicate
          is in the final dataset (i.e. has not been filtered out)
     - `sample_idxs (N,) - the indices of the filtered replicates with respect to the rows of
@@ -218,8 +218,8 @@ and the following optional arguments:
           - `ic_dist` (N, varies) - the estimated initial distribution parameters for each
               replicate. The second dimension depends on which initial distribution is
               used for calculation.
-          - `itercount_hist` (N,) - the number of iterations for convergence for each replicate.
-          - `exit_codes` (N,) - exit codes indicating the termination statuts of each replicate.
+          - `itercount_hist` (N,) - number of iterations for convergence for each replicate.
+          - `exit_codes` (N,) - exit codes indicating termination statuts of each replicate.
                See section "Exit Codes".
 
     Additionally, if the input file is a .vcf, several additional keys are added from the VCF
@@ -227,14 +227,15 @@ and the following optional arguments:
     each of shape (N,):
     - `pos` - chromosomal position of each replicate. "variants/POS" from the VCF file.
     - `snp_ids` - "variants/ID" from the VCF file.
-    - `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.
+    - `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from
+        the VCF file.
 
 
 --force [haploid|diploid]
     If the inputted VCF file contains only homozygous loci, use this flag to determine whether
-    the genotypes are read as haploid (1 sample per locus per individual) or homozygous diploid
-    (2 samples per locus per individual). If the inputted VCF file is not all homozygotes, this
-    argument has no effect.
+    the genotypes are read as haploid (1 sample per locus per individual) or homozygous
+    diploid (2 samples per locus per individual). If the inputted VCF file is not all
+    homozygotes, this argument has no effect.
 
 
 --progressbar
@@ -288,10 +289,10 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 -s, --sel_coeffs <float or sequence of floats, default=.005, .01, .025, .05>
-    Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness of
-    the derived homozygote), with s_1 = s_2 / 2. All other modes of selection are governed by a
-    single parameter. Simulating under neutrality should be done by adding "neutral" to the
-    --sel_types flag, not by including 0 in this flag.
+    Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness
+    of the derived homozygote), with s_1 = s_2 / 2. All other modes of selection are governed
+    by a single parameter. Simulating under neutrality should be done by adding "neutral" to
+    the --sel_types flag, not by including 0 in this flag.
 
 
 --sel_types <str or sequence of strs, default=neutral add dom rec over under>
@@ -304,9 +305,10 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 -ic, --init_conds <float, str, or sequence of floats and strs, default=.005, .25, "recip">
-    Initial conditions to simulate under. Floats are interpreted as initializing each simulation
-    from the same fixed allele frequency. Currently, the only non-float option is "recip", which
-    samples from a distribution where the probability of initial frequency p is proportional to 1/p.
+    Initial conditions to simulate under. Floats are interpreted as initializing each
+    simulation from the same fixed allele frequency. Currently, the only non-float option is
+    "recip", which samples from a distribution where the probability of initial frequency p
+    is proportional to 1/p.
 
 
 
@@ -316,8 +318,9 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 -st, --sampling_times <int, default=11>
-    Number of equally-spaced timepoints to sample at. Samples are taken at the first generation,
-    the last generation and (sampling_times - 2) points equally spaced between.
+    Number of equally-spaced timepoints to sample at. Samples are taken at the first
+    generation, the last generation and (sampling_times - 2) points equally
+    spaced between.
 
 
 
@@ -326,8 +329,8 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 --vary_Ne <str>
-    Input the path to a .txt file containing a value of Ne in each generation. This overrides
-    the -Ne flag. An example of such a varying-Ne dataset is provided
+    Input the path to a .txt file containing a value of Ne in each generation.
+    This overrides the -Ne flag. An example of such a varying-Ne dataset is provided
     (sample_datasets/ibdne_raw.txt) for use in generating the IBDNe dataset.
 
 

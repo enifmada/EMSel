@@ -343,4 +343,4 @@ Number of replicates simulated from each set of simulation parameters.
     Adds a suffix to each file to help distinguish different simulation runs.
 ```
 
-When specifying multiple values for sel_coeffs, sel_types, num_gens, and init_conds, simulation is done for each combination on values (i.e. on itertools.product(sel_coeffs, sel_types, num_gens, init_conds)), for a total of len(sel_coeffs)\*len(sel_types)*(len(num_gens)*len(init_conds) sets of files. 
+When specifying multiple values for sel_coeffs, sel_types, num_gens, and init_conds, simulation is done for each combination on values (i.e. on itertools.product(sel_coeffs, sel_types, num_gens, init_conds)), for a total of len(sel_coeffs)\*len(sel_types)\*len(num_gens)\*len(init_conds) sets of files. 

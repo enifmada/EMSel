@@ -57,18 +57,19 @@ In addition to the required `input` and `output` paths, EMSel has one required a
 
 ```
 --time_after_zero | --time_before_present
-    Use of exactly one of these arguments is required to specify whether the sample dates provided in the CSV/VCF start
-    at zero at the earliest time and count up towards the present (--time_after_zero) or start at zero at the present and
-    count up moving backward in time (--time_before_present).
+    Use of exactly one of these arguments is required to specify whether the sample dates
+    provided in the CSV/VCF start at zero at the earliest time and count up towards the
+    present (--time_after_zero) or start at zero at the present and count up moving backward
+    in time (--time_before_present).
 ```
 
 and the following optional arguments:
 
 ```
 -ytg, --years_to_gen <float, default=1>
-    Number of years per generation, used to convert a VCF or CSV to generations. If the sampling times in the sample
-    file or the CSV are in generations, use the defualt of 1. Note that for the --save_csv flag, the CSV output
-    will be in generations.
+    Number of years per generation, used to convert a VCF or CSV to generations. If the
+    sampling times in the sample file or the CSV are in generations, use the defualt of 1.
+    Note that for the --save_csv flag, the CSV output will be in generations.
 
 
 -maf, --min_allele_freq <float, default=0.05>

@@ -136,8 +136,8 @@ and the following optional arguments:
 
 --selection_modes <1+ str, default='all'>
     Which modes of selection to analyze under. You can list as many of
-    ["neutral", "add", "dom", "rec", "het", "full"] as you would like. Neutral is automatically
-    run. The default, "all", is a shorthand for running all modes of selection.
+    ["neutral", "add", "dom", "rec", "het", "full"] as you would like. Neutral is
+    automatically run. The default, "all", is a shorthand for running all modes of selection.
 
 
 --no_neutral
@@ -147,8 +147,8 @@ and the following optional arguments:
 --compute_cond
     Computes the log-likelihood that the allele is segregating at at least time point. Adds
     a key to the dictionary, "cond_correction_ll" containing an array of size (N,)
-    corresponding to this probability for each replicate. Only used in estimating the effective
-    population size.
+    corresponding to this probability for each replicate. Only used in estimating the
+    effective population size.
 
 
 -nc, --num_cores <int, default=1>
@@ -223,16 +223,18 @@ and the following optional arguments:
                See section "Exit Codes".
 
     Additionally, if the input file is a .vcf, several additional keys are added from the VCF
-    file to facilitate additional data analysis (see the figures/gb_dataset folder), each of shape (N,):
+    file to facilitate additional data analysis (see the figures/gb_dataset folder),
+    each of shape (N,):
     - `pos` - chromosomal position of each replicate. "variants/POS" from the VCF file.
     - `snp_ids` - "variants/ID" from the VCF file.
     - `ref_allele` and `alt_allele` - "variants/REF" and ["variants/ALT"][:, 0] from the VCf file.
 
 
 --force [haploid|diploid]
-    If the inputted VCF file contains only homozygous loci, use this flag to determine whether the genotypes are
-    read as haploid (1 sample per locus per individual) or homozygous diploid (2 samples per locus per individual).
-    If the inputted VCF file is not all homozygotes, this argument has no effect.
+    If the inputted VCF file contains only homozygous loci, use this flag to determine whether
+    the genotypes are read as haploid (1 sample per locus per individual) or homozygous diploid
+    (2 samples per locus per individual). If the inputted VCF file is not all homozygotes, this
+    argument has no effect.
 
 
 --progressbar
@@ -286,9 +288,10 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 -s, --sel_coeffs <float or sequence of floats, default=.005, .01, .025, .05>
-    Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness of the derived homozygote),
-    with s_1 = s_2 / 2. All other modes of selection are governed by a single parameter. Simulating under neutrality
-    should be done by adding "neutral" to the --sel_types flag, not by including 0 in this flag.
+    Selection coefficients to simulate. For additive selection, this value is s_2 (the fitness of
+    the derived homozygote), with s_1 = s_2 / 2. All other modes of selection are governed by a
+    single parameter. Simulating under neutrality should be done by adding "neutral" to the
+    --sel_types flag, not by including 0 in this flag.
 
 
 --sel_types <str or sequence of strs, default=neutral add dom rec over under>
@@ -301,9 +304,9 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 -ic, --init_conds <float, str, or sequence of floats and strs, default=.005, .25, "recip">
-    Initial conditions to simulate under. Floats are interpreted as initializing each simulation from the same fixed
-    allele frequency. Currently, the only non-float option is "recip", which samples from a distribution where the
-    probability of initial frequency p is proportional to 1/p.
+    Initial conditions to simulate under. Floats are interpreted as initializing each simulation
+    from the same fixed allele frequency. Currently, the only non-float option is "recip", which
+    samples from a distribution where the probability of initial frequency p is proportional to 1/p.
 
 
 
@@ -323,29 +326,32 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 --vary_Ne <str>
-    Input the path to a .txt file containing a value of Ne in each generation. This overrides the -Ne flag.
-    An example of such a varying-Ne dataset is provided (sample_datasets/ibdne_raw.txt) for use in
-    generating the IBDNe dataset.
+    Input the path to a .txt file containing a value of Ne in each generation. This overrides
+    the -Ne flag. An example of such a varying-Ne dataset is provided
+    (sample_datasets/ibdne_raw.txt) for use in generating the IBDNe dataset.
 
 
 --data_matched <3 strs>
-    Provide the path to a sample_means.txt file, a sample_missingness.txt file and a sample_sizes.table file to
-    override the -ic, -g, -ns, and -st flags and simulate under the same initial distribution, number of generations,
-    and sampling scheme as the inputted real data file. The sample_means.txt and sample_missingness.txt files can be
-    obtained by running the aggregate_data.py script (in figures/gb_dataset) after running EMSel. sample_means.txt
-    should be formatted as a MAF filter on the first line followed by one float per line representing estimated
-    initial frequencies to draw from. sample_missingness.txt should be formatted as a missingness filter on the first
-    line followed by one float per line representing sample missingness to draw from. The sample_sizes.table file
-    can be obtained by running the pipeline in the figures/gb_dataset/extract_vcfs folder.
-    Example files are also provided.
+    Provide the path to a sample_means.txt file, a sample_missingness.txt file and a
+    sample_sizes.table file to override the -ic, -g, -ns, and -st flags and simulate
+    under the same initial distribution, number of generations, and sampling scheme as
+    the inputted real data file. The sample_means.txt and sample_missingness.txt files
+    can be obtained by running the aggregate_data.py script (in figures/gb_dataset) after
+    running EMSel. sample_means.txt should be formatted as a MAF filter on the first line
+    followed by one float per line representing estimated initial frequencies to draw from.
+    sample_missingness.txt should be formatted as a missingness filter on the first line
+    followed by one float per line representing sample missingness to draw from. The
+    sample_sizes.table file can be obtained by running the pipeline in the
+    figures/gb_dataset/extract_vcfs folder. Example files are also provided.
 
 
 
 
 --no_small_s
-    By default, the formula for updating allele frequencies in the Wright-Fisher model uses the small s approximation
-    (p' = p + p(1-p)*((1-2p)s1 + p*s2)). Use this flag to indicate that the full formula,
-    p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2), should be used instead.
+    By default, the formula for updating allele frequencies in the Wright-Fisher model
+    uses the small s approximation (p' = p + p(1-p)*((1-2p)s1 + p*s2)). Use this flag
+    to indicate that the full formula, p' = p(1+s1(1-p)+s2*p)/(1+2*s1*p+s2*p^2-2s1*p**2),
+    should be used instead.
 
 
 --seed <int>
@@ -353,8 +359,8 @@ Number of replicates simulated from each set of simulation parameters.
 
 
 --save_plots
-    If used, one plot per simulation condition plotting the true allele frequency for each replicate as well as
-    the mean allele frequency will be produced.
+    If used, one plot per simulation condition plotting the true allele frequency for
+    each replicate as well as the mean allele frequency will be produced.
 
 
 --suffix <str>

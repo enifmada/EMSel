@@ -81,8 +81,6 @@ for p_i, prefix in enumerate(prefixes):
         all_ests.append(Nes_space[np.argmax(condo_spline_output)])
         all_labels.append(labels[p_i])
 
-print([f"{est:.0f}" for est in all_ests])
-
 massaged_data = zip(all_ests, all_labels)
 data_df = pd.DataFrame(massaged_data, columns=[r"$\hat{N}_e$", "Dataset"])
 

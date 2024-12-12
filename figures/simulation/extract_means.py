@@ -40,5 +40,4 @@ for num_gens in num_gens_list:
         with open(em_path, "rb") as file:
             hf = pickle.load(file)
         init_mean = hf["neutral_ic"][0, :]/(hf["neutral_ic"][0, :]+hf["neutral_ic"][1, :])
-        print(init_mean.shape)
         np.savetxt(means_path, np.concatenate(([hf['maf_thresh']], init_mean)), delimiter="\t", fmt="%.4f")

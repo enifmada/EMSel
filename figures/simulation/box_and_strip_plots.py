@@ -194,7 +194,7 @@ for n_i, num_gens in enumerate(num_gens_list):
         min_quantile = min(min_quantile, -.01)
         s_stuff = pd.DataFrame(data=massaged_data, columns=[r"$\hat{s}$", r"True $s$", "Mode of selection"])
         if cond_only:
-            box = sns.stripplot(data=s_stuff, x=r"True $s$", y=r"$\hat{s}$", hue="Mode of selection", dodge=True,ax=axs, size=2)
+            box = sns.stripplot(data=s_stuff, x=r"True $s$", y=r"$\hat{s}$", hue="Mode of selection", dodge=True,ax=axs, size=2, rasterized=True)
             counts = []
             y_locs = []
             x_locs = []
@@ -243,5 +243,5 @@ for n_i, num_gens in enumerate(num_gens_list):
             for handle in lgd.legend_handles:
                 handle.set_markersize(4)
         axs.set_ylim([min_quantile, max_quantile])
-        plt.savefig(f"{output_dir}/g{num_gens}_d{init_dist}_{output_suffix}{'strip' if cond_only else 'box'}plots.pdf", format="pdf", bbox_inches="tight")
+        plt.savefig(f"{output_dir}/g{num_gens}_d{init_dist}_{output_suffix}{'strip' if cond_only else 'box'}plots.pdf", format="pdf", bbox_inches="tight", dpi=600)
         plt.close(fig)

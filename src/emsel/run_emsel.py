@@ -101,7 +101,7 @@ def main():
         if args.time_before_present:
             hmm_data["sample_times"] = np.max(hmm_data["sample_times"], axis=1)-hmm_data["sample_times"]
         max_samples = np.max(np.sum(hmm_data["num_samples"], axis=1))
-    elif pd_path.suffix == ".vcf" or (pd_path.suffix == ".gz" and pd_path.stem.suffix == ".vcf"):
+    elif pd_path.suffix == ".vcf" or pd_path.suffixes == [".vcf", ".gz"]:
         print("processing VCF...")
         if not (args.info_file and args.info_cols):
             raise ValueError("No sample file (or columns therein) specified!")

@@ -332,6 +332,7 @@ def vcf_to_useful_format(vcf_file, sample_times_file, years_per_gen=28.1, force=
     correct_order_idxs = vcf_file["samples"].argsort().argsort()
     sample_times_ordered = sample_times_ordered[correct_order_idxs, :]
     sample_times, sample_idxs = np.unique(sample_times_ordered[:, 1], return_inverse=True)
+    num_snps = vcf_file["calldata/GT"].shape[0]
     locus_list_list = []
 
     #if we're doing genome-wide thresholds?
@@ -341,7 +342,7 @@ def vcf_to_useful_format(vcf_file, sample_times_file, years_per_gen=28.1, force=
             raise TypeError("VCF call data is all homozygotes - must use --force [haploid/diploid]!")
         elif force == "haploid":
             vcf_file["calldata/GT"][:, :, 1] = -1
-    big_final_table = np.zeros((1, sample_times.shape[0]*3))
+    big_final_table = np.zeros((num_snps, sample_times.shape[0]*3))
     for sample_i, sample_time in enumerate(sample_times):
         sample_indices = np.where(sample_i == sample_idxs)[0]
         sample_time_indices = np.where(sample_time == sample_times)[0]
@@ -358,7 +359,7 @@ def vcf_to_useful_format(vcf_file, sample_times_file, years_per_gen=28.1, force=
     big_final_table[:, ::3] = (max_sample_time - sample_times[::-1]).astype(int)
     big_final_table[:, 1::3] = big_final_table[:, 1::3][:, ::-1]
     big_final_table[:, 2::3] = big_final_table[:, 2::3][:, ::-1]
-    return big_final_table[1:, :]
+    return big_final_table
 
 
 def full_bh_procedure(llgka_list, fitted_dist, lr_shift, alpha, bh=True):

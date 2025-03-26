@@ -105,7 +105,7 @@ EM_dir = "EM/pure_sim"
 output_dir = "output/pure_sim"
 
 file_strs = ["ns100_linear_", "linear_", "fixed_ic_", ""]
-blank_name_str = "standard_
+blank_name_str = "standard_"
 ```
 
 ## Figure 6:
@@ -138,6 +138,7 @@ sim_Nes = [2500, 10000, 40000]
 prefixes = [*[f"g251_d25_Ne{sim_Ne}" for sim_Ne in sim_Nes]]
 labels = [rf"$N_e = {{{str(i)}}}$" for i in sim_Nes]
 EM_dirs = ["EM/pure_sim/boxplots", "EM/pure_sim/boxplots", "EM/pure_sim/boxplots"]
+true_maxes = [2500, 10000, 40000]
 ```
 
 

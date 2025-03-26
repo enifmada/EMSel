@@ -246,6 +246,7 @@ output_dir = "output/ibdne"
 prefixes = ["g125_dal_special_realmatch", "g125_dal_special_ibdne"]
 labels = ["Real matched", "IBDNe"]
 EM_dirs = ["EM/real_matched/boxplots", "EM/ibdne/boxplots"]
+true_maxes = [9715, 26205]
 ```
 
 ## Figure S.16:

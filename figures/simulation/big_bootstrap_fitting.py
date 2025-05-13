@@ -11,7 +11,7 @@ init_dists = [.005, .25, "recip"]
 num_gens_list = [125]
 init_dists = ["real_special"]
 
-EM_dir = "EM/ibdne"
+EM_dir = "EM/ibdne/big"
 output_dir = "output/ibdne"
 onep_types = ["add", "dom", "rec", "het"]
 ###### DO NOT MODIFY
@@ -35,7 +35,7 @@ for num_gens in num_gens_list:
 
         neutral_filename = params_dict_to_str(**ndict)
 
-        n_path = Path(f"{EM_dir}/{neutral_filename}_{EM_suffix}EM.pkl")
+        n_path = Path(f"{EM_dir}/{neutral_filename}_fit_{EM_suffix}EM.pkl")
         with open(n_path, "rb") as file:
             nf = pickle.load(file)
 

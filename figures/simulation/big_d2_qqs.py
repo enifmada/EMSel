@@ -87,8 +87,8 @@ for num_gens in num_gens_list:
         neutral_filename = params_dict_to_str(**ndict)
         row_list.append([neutral_filename])
 
-        for e_i, i in enumerate(tqdm(range(10))):
-            neutral_EM_path = Path(f"{EM_dir}/{neutral_filename}_plot{i}_{EM_suffix}EM.pkl")
+        for e_i, suff in enumerate(tqdm(["plot1", "plot2", "plot3"])):
+            neutral_EM_path = Path(f"{EM_dir}/{neutral_filename}_{suff}_{EM_suffix}EM.pkl")
             with open(neutral_EM_path, "rb") as file:
                 nf_data = pickle.load(file)
             neutral_ll_array = np.concatenate((neutral_ll_array, nf_data["neutral_ll"]))
@@ -98,7 +98,7 @@ for num_gens in num_gens_list:
             onep_ll_array = np.vstack((onep_ll_array, neutral_llg[:, 1:len(onep_types)+1]))
 
 
-            n_data = np.loadtxt(Path(f"{data_dir}/{neutral_filename}_plot{i}_data.csv", sep="\t", fmt="%d"))
+            n_data = np.loadtxt(Path(f"{data_dir}/{neutral_filename}_{suff}_data.csv", sep="\t", fmt="%d"))
             if e_i == 0:
                 data = n_data
             else:
@@ -198,32 +198,33 @@ for num_gens in num_gens_list:
         #     format="pdf", bbox_inches="tight", dpi=300)
         # plt.close(fig)
 
-        for llr_data, fit_gengamma, fit_chi2, title in zip([onep_ll_array, full_ll_array], [final_gengamma_dict, finaluncon_gengamma_dict], [final_chi2_dict, finaluncon_chi2_dict], ["final_1dmax", "final_1dmax+uncon"]):
-            if "uncon" in title:
-                continue
-            final_llr_data = 2*(np.max(llr_data, axis=1)-neutral_ll_array)
+        llr_data = onep_ll_array
+        fit_gengamma = final_gengamma_dict
+        fit_chi2 = final_chi2_dict
+        title = "final_1dmax"
+        final_llr_data = 2*(np.max(llr_data, axis=1)-neutral_ll_array)
 
-            final_med_p_vals = np.zeros_like(final_llr_data)
-            final_med_p_vals[final_llr_data > fit_gengamma["lr_shift"]] = (1 - fit_gengamma["dist_fit"].cdf(
-                final_llr_data[final_llr_data > fit_gengamma["lr_shift"]] - fit_gengamma["lr_shift"])) / 2
-            final_med_p_vals[final_llr_data <= fit_gengamma["lr_shift"]] = np.clip(
-                1 - final_llr_data[final_llr_data <= fit_gengamma["lr_shift"]] / (2 * fit_gengamma["lr_shift"]), .5, 1)
+        final_med_p_vals = np.zeros_like(final_llr_data)
+        final_med_p_vals[final_llr_data > fit_gengamma["lr_shift"]] = (1 - fit_gengamma["dist_fit"].cdf(
+            final_llr_data[final_llr_data > fit_gengamma["lr_shift"]] - fit_gengamma["lr_shift"])) / 2
+        final_med_p_vals[final_llr_data <= fit_gengamma["lr_shift"]] = np.clip(
+            1 - final_llr_data[final_llr_data <= fit_gengamma["lr_shift"]] / (2 * fit_gengamma["lr_shift"]), .5, 1)
 
-            final_fit_chi2_p_vals = np.zeros_like(final_llr_data)
-            final_fit_chi2_p_vals[final_llr_data > fit_chi2["lr_shift"]] = (1 - fit_chi2["dist_fit"].cdf(
-                final_llr_data[final_llr_data > fit_chi2["lr_shift"]] - fit_chi2["lr_shift"])) / 2
-            final_fit_chi2_p_vals[final_llr_data <= fit_chi2["lr_shift"]] = np.clip(
-                1 - final_llr_data[final_llr_data <= fit_chi2["lr_shift"]] / (2 * fit_chi2["lr_shift"]), .5, 1)
+        final_fit_chi2_p_vals = np.zeros_like(final_llr_data)
+        final_fit_chi2_p_vals[final_llr_data > fit_chi2["lr_shift"]] = (1 - fit_chi2["dist_fit"].cdf(
+            final_llr_data[final_llr_data > fit_chi2["lr_shift"]] - fit_chi2["lr_shift"])) / 2
+        final_fit_chi2_p_vals[final_llr_data <= fit_chi2["lr_shift"]] = np.clip(
+            1 - final_llr_data[final_llr_data <= fit_chi2["lr_shift"]] / (2 * fit_chi2["lr_shift"]), .5, 1)
 
-            final_p_vals_chi21 = 1 - chi2(1).cdf(final_llr_data)
-            final_p_vals_chi22 = 1 - chi2(2).cdf(final_llr_data)
+        final_p_vals_chi21 = 1 - chi2(1).cdf(final_llr_data)
+        final_p_vals_chi22 = 1 - chi2(2).cdf(final_llr_data)
 
-            fig, axs = plt.subplots(1, 1, figsize=(3.1, 3.1), layout="constrained")
-            logps = [-np.log10(final_p_vals_chi21), -np.log10(final_p_vals_chi22), -np.log10(final_fit_chi2_p_vals), -np.log10(final_med_p_vals)]
-            labels = [r"$\chi^2(1)$", r"$\chi^2(2)$", rf"$\chi^2(k={{{fit_chi2['dist_fit'].args[0]:.2f}}})$", "Gen. gamma", ]
-            colors = ["#861A5E", colorlist[0], "r", colorlist[2]]
-            axins = axs.inset_axes([.65, .11, .3, .3])
-            #axs.text(-.2, .97, r"$\bf{D}$", fontsize=13, transform=axs.transAxes)
-            plot_qq(axs, axins, logps, labels, colors=colors, legend_loc = "upper left", thin=True, rasterized=True)
-            fig.savefig(Path(f"{output_dir}/neutral_g{num_gens}_d{init_dist}_{output_suffix}{title}_100k_d2_final.pdf"), format="pdf", bbox_inches="tight", dpi=300)
-            plt.close(fig)
+        fig, axs = plt.subplots(1, 1, figsize=(3.1, 3.1), layout="constrained")
+        logps = [-np.log10(final_p_vals_chi21), -np.log10(final_p_vals_chi22), -np.log10(final_fit_chi2_p_vals), -np.log10(final_med_p_vals)]
+        labels = [r"$\chi^2(1)$", r"$\chi^2(2)$", rf"$\chi^2(k={{{fit_chi2['dist_fit'].args[0]:.2f}}})$", "Gen. gamma", ]
+        colors = ["#861A5E", colorlist[0], "r", colorlist[2]]
+        axins = axs.inset_axes([.65, .11, .3, .3])
+        #axs.text(-.2, .97, r"$\bf{D}$", fontsize=13, transform=axs.transAxes)
+        plot_qq(axs, axins, logps, labels, colors=colors, legend_loc = "upper left", thin=True, rasterized=True)
+        fig.savefig(Path(f"{output_dir}/neutral_g{num_gens}_d{init_dist}_{output_suffix}{title}_300k_final.pdf"), format="pdf", bbox_inches="tight", dpi=300)
+        plt.close(fig)

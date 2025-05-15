@@ -2,7 +2,7 @@
 
 # Simulation studies
 
-The scripts in this directory can be used to recreate all figures in Sections 3 (Figures 4-8) and 4.2 (Figures 9-11) of the manuscript, as well as figures S.1-S.11 and Figure S.22A in the Supplemental Material. This README is organized by what simulations need to be run to produce a given set of figures, with the analysis commands and scripts to produce the figures noted therein.
+The scripts in this directory can be used to recreate all figures in Sections 3 (Figures 4-8) and 4.2 (Figures 9-11) of the manuscript, as well as figures S.1-S.17 and Figure S.29A in the Supplemental Material. This README is organized by what simulations need to be run to produce a given set of figures, with the analysis commands and scripts to produce the figures noted therein.
 
 **Prior to running the scripts in this directory, change the current working directory to this folder.** Also, if you have not already, install the additional plotting packages required by running the command
 ```
